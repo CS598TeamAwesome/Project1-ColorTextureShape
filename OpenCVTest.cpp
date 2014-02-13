@@ -7,7 +7,7 @@
 int main(int argc, char **argv)
 {
     // Make sure arguments are correct
-    if(argc == 1)
+    if(argc <= 1)
     {
         std::cout << "Pass an image as the first argument" << std::endl;
         return 1;
