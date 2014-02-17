@@ -1,0 +1,38 @@
+1. creating a color histogram
+Parameters:
+   image (OpenCV Mat object)
+   clustering strategy (k-means, none, other)
+     - or we can just assume k-means, then we'd just pass in the number of clusters
+   quantization levels?
+     - how do we define these?
+Output:
+   histogram object (potentially just a 1D array?)
+
+2. creating color correlogram
+Parameters:
+	 image (OpenCV Mat object)
+	 distance
+	 clustering
+	 Q levels
+	 Auto-correlogram flag(?)
+Output:
+   correlogram object (I think this ends up being a 3D array)
+   
+We'd need a sub-function for running color-pairs (on distance D)
+
+3. creating local binary pattern histogram
+Parameters:
+  image
+	neighborhood size
+	uniform flag
+Outpute:
+  histogram
+
+4. creating histogram of oriented gradient
+Parameters:
+  image
+	rectangular or circular blocks
+	gradient vector
+	normalization strategy (L1norm, L2norm, L1sqrt, L2hys)
+Output:
+  histogram
