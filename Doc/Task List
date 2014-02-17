@@ -1,0 +1,32 @@
+1. color histogram
+
+2. color correlogram
+	
+3. local binary pattern histogram
+
+4. histogram of oriented gradient
+
+5. L1
+
+6. L2
+
+7. Chi-Square
+
+8. Cosine Similarity
+
+9. Histogram Intersection
+
+10. additional features
+
+12. testing 
+ - plan
+ - execution
+ - results
+ - report
+
+13. demonstrationmain 
+ - main function
+ - image library
+ - readme on how to run
+
+14. group task report
