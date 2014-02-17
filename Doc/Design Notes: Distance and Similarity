@@ -1,0 +1,24 @@
+5. L1
+Parameters:
+  two histograms of same type
+Output:
+
+6. L2
+Parameters:
+  two histograms of same type
+Output:
+
+7. Chi-Square
+Parameters:
+  two histograms of same type
+Output:
+
+8. Cosine Similarity
+Parameters:
+  two histograms of same type
+Output:
+
+9. Histogram Intersection
+Parameters:
+  two histograms of same type
+Output:
