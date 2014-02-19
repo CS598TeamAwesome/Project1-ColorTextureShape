@@ -29,7 +29,7 @@ double *HistogramOfOrientedGradients::Compute(cv::Mat &img)
     cv::filter2D(dblImg, gradH, CV_64F, _Mx); 
     cv::filter2D(dblImg, gradV, CV_64F, _My);
     
-    // 4. Divide image in cells (How big should each cell be? using 3x3)
+    // 4. Divide image in cells 
     std::vector<cv::Mat> cellsH;
     std::vector<cv::Mat> cellsV;
     for(int i = 0; i < img.cols; i+=_CellSize.width)
@@ -47,12 +47,12 @@ double *HistogramOfOrientedGradients::Compute(cv::Mat &img)
         }
     }
     
-    // 5. Compute histogram for each cell (using 9 bins)
+    // 5. Compute histogram for each cell 
     std::vector<double *> cellHistograms(cellsH.size());
     std::transform(cellsH.begin(), cellsH.end(), cellsV.begin(), cellHistograms.begin(),
     [](cv::Mat &gradH, cv::Mat &gradV)
     {
-        double *histogram = new double[9](); 
+        double *histogram = new double[_Bins](); 
         
         for(int i = 0; i < gradH.cols; i++)
         {
@@ -66,10 +66,10 @@ double *HistogramOfOrientedGradients::Compute(cv::Mat &img)
                     double angle = std::abs(std::atan2(v, h));
                     double mag = std::sqrt((h * h) + (v * v));
                     
-                    int bin = (int)std::floor(9 * angle / M_PI);
+                    int bin = (int)std::floor(_Bins * angle / M_PI);
                     
                     if(angle == M_PI) // Last bin must also include alpha = 180
-                        bin = 8;
+                        bin = _Bins - 1;
                     
                     histogram[bin] += mag;
                 }
@@ -79,17 +79,17 @@ double *HistogramOfOrientedGradients::Compute(cv::Mat &img)
         return histogram;
     });
     
-    // 6. Divide cells into overlapping blocks (How big should each be? again using 3x3)
+    // 6. Divide cells into overlapping blocks 
     
     // 7. Normalize histograms for each cell in a block
     
     // 8. Concatenate histograms for each cell
-    double *finalDescriptor = new double[cellHistograms.size() * 9];
+    double *finalDescriptor = new double[cellHistograms.size() * _Bins];
     double *descriptorIter = finalDescriptor;
     for(double *histogram : cellHistograms)
     {
-        std::copy(histogram, histogram + 9, descriptorIter);
-        descriptorIter += 9;
+        std::copy(histogram, histogram + _Bins, descriptorIter);
+        descriptorIter += _Bins;
     }
     
     return finalDescriptor;
