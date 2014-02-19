@@ -7,39 +7,43 @@
 
 using namespace ColorTextureShape;
 
-void HistogramOfOrientedGradients::Compute(void)
+HistogramOfOrientedGradients::HistogramOfOrientedGradients(void)
 {
-    // 1. Get the input image
-    cv::Mat &inputImage = GetImage();
-
-    // 2. Convert to grayscale
-    cv::Mat img;
-    cv::cvtColor(inputImage, img, CV_RGB2GRAY);
-
-    // 3. Compute the horizontal and vertical gradients
     double gradData[] = {-1, 0, 1};
-    cv::Mat verticalGradient(3, 1, CV_64F, gradData);
-    cv::Mat horizontalGradient(1, 3, CV_64F, gradData);
+    _My = cv::Mat(3, 1, CV_64F, gradData);
+    _Mx = cv::Mat(1, 3, CV_64F, gradData);
+}
+
+double *HistogramOfOrientedGradients::Compute(cv::Mat &img)
+{
+    // 1. Convert to grayscale
+    cv::Mat gray;
+    cv::cvtColor(img, gray, CV_RGB2GRAY);
     
+    // 2. Convert grayscale to double 
+    cv::Mat dblImg;
+    gray.convertTo(dblImg, CV_64F);
+
+    // 3. Compute the horizontal and vertical gradients    
     cv::Mat gradH, gradV;
-    cv::filter2D(img, gradH, CV_8U, horizontalGradient); // Specifying 8U here explicitly to be safe
-    cv::filter2D(img, gradV, CV_8U, verticalGradient);
+    cv::filter2D(dblImg, gradH, CV_64F, _Mx); 
+    cv::filter2D(dblImg, gradV, CV_64F, _My);
     
     // 4. Divide image in cells (How big should each cell be? using 3x3)
     std::vector<cv::Mat> cellsH;
     std::vector<cv::Mat> cellsV;
-    for(int i = 0; i < img.cols; i+=3)
+    for(int i = 0; i < img.cols; i+=_CellSize.width)
     {
-        if(i + 3 > img.cols)
+        if(i + _CellSize.width > img.cols)
             continue;
         
-        for(int j = 0; j < img.rows; j+=3)
+        for(int j = 0; j < img.rows; j+=_CellSize.height)
         {
-            if(j + 3 > img.rows)
+            if(j + _CellSize.height > img.rows)
                 continue;
             
-            cellsH.push_back(gradH(cv::Rect(i, j, 3, 3)));
-            cellsV.push_back(gradV(cv::Rect(i, j, 3, 3)));
+            cellsH.push_back(gradH(cv::Rect(cv::Point(i, j), _CellSize)));
+            cellsV.push_back(gradV(cv::Rect(cv::Point(i, j), _CellSize)));
         }
     }
     
@@ -54,18 +58,21 @@ void HistogramOfOrientedGradients::Compute(void)
         {
             for(int j = 0; j < gradH.rows; j++)
             {
-                unsigned char h = gradH.at<unsigned char>(j, i);
-                unsigned char v = gradV.at<unsigned char>(j, i);
+                double h = gradH.at<double>(j, i);
+                double v = gradV.at<double>(j, i);
                 
-                double angle = std::atan2(v, h);
-                double mag = std::sqrt((h * h) + (v * v));
-                
-                int bin = (int)std::floor(9 * angle / M_PI);
-                
-                if(angle == M_PI) // Last bin must also include alpha = 180
-                    bin = 8;
-                
-                histogram[bin] += mag;
+                if(h != 0 || v != 0)
+                {
+                    double angle = std::abs(std::atan2(v, h));
+                    double mag = std::sqrt((h * h) + (v * v));
+                    
+                    int bin = (int)std::floor(9 * angle / M_PI);
+                    
+                    if(angle == M_PI) // Last bin must also include alpha = 180
+                        bin = 8;
+                    
+                    histogram[bin] += mag;
+                }
             }
         }
         
@@ -85,5 +92,5 @@ void HistogramOfOrientedGradients::Compute(void)
         descriptorIter += 9;
     }
     
-    // finalDescriptor now contains the result of the HOG extraction.
+    return finalDescriptor;
 }
