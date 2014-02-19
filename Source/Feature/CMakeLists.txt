@@ -4,6 +4,7 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/ColorHistogram.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/LocalBinaryPattern.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/HistogramOfOrientedGradients.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ColorCorrelogram.cpp
     PARENT_SCOPE
 )
 
@@ -13,5 +14,6 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/ColorHistogram.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/LocalBinaryPattern.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/HistogramOfOrientedGradients.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ColorCorrelogram.hpp
     PARENT_SCOPE
 )
