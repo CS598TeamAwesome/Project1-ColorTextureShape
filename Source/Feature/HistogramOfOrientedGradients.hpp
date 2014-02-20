@@ -3,6 +3,8 @@
 #include "HistogramFeature.hpp"
 #include <opencv2/opencv.hpp>
 
+// Defaults taken from optimal findings (Dalal & Triggs CVPR 2005 http://lear.inrialpes.fr/people/triggs/pubs/Dalal-cvpr05.pdf)
+
 namespace ColorTextureShape
 {
     class HistogramOfOrientedGradients : public HistogramFeature
@@ -28,7 +30,7 @@ namespace ColorTextureShape
             void My(const cv::Mat &m);
             
         private:
-            cv::Size _CellSize = cv::Size(3, 3);
+            cv::Size _CellSize = cv::Size(6, 6);
             cv::Size _BlockSize = cv::Size(3, 3);
             int _Bins = 9;
             
