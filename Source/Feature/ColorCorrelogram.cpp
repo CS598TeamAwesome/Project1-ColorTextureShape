@@ -9,36 +9,44 @@ using std::vector;
 using namespace ColorTextureShape;
 
 void ColorCorrelogram::Compute(cv::Mat img){
-    //cv::Mat img = cv::imread(argv[1]);
-    cv::imshow("Input Image", img);
-    cv::waitKey(0);
+    //use a default quantization
+    ColorQuantizationRGB quantization(4,4,4);
+    Compute(img, quantization);
+}
+
+void ColorCorrelogram::Compute(cv::Mat img, ColorQuantizationRGB quantization){
+    //how many colors (N) and their ranges are passed in as quantization
+    int color_ct = quantization.getBinCt();
+    int rows = img.rows;
+    int columns = img.cols;
+    int distance = 10;
+
+    //destination for quantized image
+    int** quantized_img = new int*[rows];
+    for(int i = 0; i < img.rows; i++){
+        quantized_img[i] = new int[columns];
+    }
+
+    //quantize image
+    quantization.quantize(img, quantized_img);
+
+    //build 2N lambda tables, a horizontal and vertical one for each of the N colors
+    // . do we want a function to build a lambda table given a color?
+    // . definitely need to pass in max distance
 
     //LAMBDA TABLES
     //given color
     //build horizontal lambda table for color (nxnxd)
     //build vertical lambda table for color (nxnxd)
 
-    int rows = img.rows;
-    int columns = img.cols;
-    int distance = 10;
+    //NEED TO CONVERT THIS TO 3D INT ARRAY
+    //NEED TO BREAK THIS OUT AS A FUNCTION, THEN LOOP OVER ALL COLORS
 
-    std::cout << rows << "," << columns << std::endl;
-
-    //accessing pixel info
-    cv::Vec3b pixel = img.at<cv::Vec3b>(0,0);
-    double b = pixel[0];
-    double g = pixel[1];
-    double r = pixel[2];
-    std::cout << r << "," << g << "," << b << std::endl;
-
-    pixel = img.at<cv::Vec3b>(64,100);
-    b = pixel[0];
-    g = pixel[1];
-    r = pixel[2];
-    std::cout << r << "," << g << "," << b << std::endl;
-
+    //START LAMBDA FUNCTION, PASSING IN RED (bin 3)
     //initialize horizontal lambda -- potentially convert to int*** array for speed?
     //lambdas should be built on the search j color, we use red for now
+
+    int color = 3; //the red from the sample png reduces to bin 3
     vector<vector<vector<int>>> lambda_h;
     vector<vector<vector<int>>> lambda_v;
     lambda_h.resize(rows);
@@ -50,15 +58,11 @@ void ColorCorrelogram::Compute(cv::Mat img){
         for(int j = 0; j < columns; j++){
             lambda_h[i][j].resize(distance);
             lambda_v[i][j].resize(distance);
-            cv::Vec3b pixel = img.at<cv::Vec3b>(i,j);
-            b = pixel.val[0];
-            g = pixel.val[1];
-            r = pixel.val[2];
-            //std::cout << b << "," << r << ","<< g << std::endl;
+
             //initialize for k = 0
             //parallelize lambda_v and lambda_h
             //TODO: parallelize here? (for all color checks)
-            if(r > 0){
+            if(quantized_img[i][j] == color){
                 r_ct++;
                 lambda_h[i][j][0] = 1;
                 lambda_v[i][j][0] = 1;
@@ -68,6 +72,7 @@ void ColorCorrelogram::Compute(cv::Mat img){
             }
         }
     }
+    //TODO: gonna have to destroy these guys after we're done
 
     std::cout << "red count:" << r_ct << std::endl;
 
@@ -88,17 +93,8 @@ void ColorCorrelogram::Compute(cv::Mat img){
             }
         }
     }
-
+    //END LAMBDA FUNCTION
     //potential speedups in using MatIterator instead of individual pixel reads
-
-    /*
-    for(int i = 0; i < rows; i++){
-        for(int j = 0; j < columns; j++){
-            std::cout << lambda_h[i][j][2] << " ";
-        }
-        std::cout << std::endl;
-    }
-    */
 
     //uGAMMA RESULTS FOR COLOR PAIR
     //given k, color1, color2
@@ -108,14 +104,9 @@ void ColorCorrelogram::Compute(cv::Mat img){
     int k = 1;
     for(int i = 0; i < rows; i++){
         for(int j = 0; j < columns; j++){
-            cv::Vec3b pixel = img.at<cv::Vec3b>(i,j);
-            b = pixel.val[0];
-            g = pixel.val[1];
-            r = pixel.val[2];
-
             //choosing color1 as red, so autocorrelogram
             //choosing k = 1
-            if(r > 0){
+            if(quantized_img[i][j] == color){
                 if(i-k >= 0 && j+k < columns)
                     uGammaCt += lambda_h[i-k][j+k][2*k];
                 if(i-1 >= 0 && j-1 >= 0)
@@ -140,4 +131,5 @@ void ColorCorrelogram::Compute(cv::Mat img){
 
     //COLOR CORRELOGRAM
     //process for all color pairs and all k's
+    //size = N * N * D = 64 * 64 * 10 = 40960
 }
