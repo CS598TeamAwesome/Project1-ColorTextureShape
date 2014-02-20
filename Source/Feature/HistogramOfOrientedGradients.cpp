@@ -50,7 +50,7 @@ double *HistogramOfOrientedGradients::Compute(cv::Mat &img)
     // 5. Compute histogram for each cell 
     std::vector<double *> cellHistograms(cellsH.size());
     std::transform(cellsH.begin(), cellsH.end(), cellsV.begin(), cellHistograms.begin(),
-    [](cv::Mat &gradH, cv::Mat &gradV)
+    [this](cv::Mat &gradH, cv::Mat &gradV)
     {
         double *histogram = new double[_Bins](); 
         
