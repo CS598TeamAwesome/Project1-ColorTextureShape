@@ -1,0 +1,10 @@
+set(SOURCE
+    ${SOURCE}
+    PARENT_SCOPE
+)
+
+set(HEADERS
+    ${HEADERS}
+	${CMAKE_CURRENT_SOURCE_DIR}/Similarity.hpp
+    PARENT_SCOPE
+)
