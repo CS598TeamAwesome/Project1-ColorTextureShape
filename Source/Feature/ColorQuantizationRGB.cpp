@@ -2,6 +2,8 @@
 
 using namespace ColorTextureShape;
 
+//TODO: NEED DESTRUCTOR
+
 //constructor
 ColorQuantizationRGB::ColorQuantizationRGB(int r_ct, int g_ct, int b_ct){
     rq = r_ct;
@@ -27,6 +29,10 @@ ColorQuantizationRGB::ColorQuantizationRGB(int r_ct, int g_ct, int b_ct){
         b_ranges[i] = (256/b_ct*1.0)*i;
     }
     b_ranges[b_ct] = 257; //upper_bound
+}
+
+int ColorQuantizationRGB::getBinCt(){
+    return bq*gq*rq;
 }
 
 //assuming the src and dest dimensions are equal
