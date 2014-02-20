@@ -7,5 +7,6 @@ namespace ColorTextureShape
     {
         public:
             void Compute(cv::Mat image);
+            void Compute(cv::Mat image, ColorQuantizationRGB quantization);
     };
 }
