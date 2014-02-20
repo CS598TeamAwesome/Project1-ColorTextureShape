@@ -17,6 +17,8 @@ namespace ColorTextureShape
             //{b_lower, b_upper, g_lower, g_upper, r_lower, r_upper}, inclusive
             int* getColorsForBin(int bin);
 
+            int getBinCt();
+
         private:
             int bq; //number of blue bins
             int gq; //number of green bins
