@@ -94,3 +94,53 @@ double *HistogramOfOrientedGradients::Compute(cv::Mat &img)
     
     return finalDescriptor;
 }
+
+cv::Size HistogramOfOrientedGradients::CellSize(void) const
+{
+    return _CellSize;
+}
+
+void HistogramOfOrientedGradients::CellSize(const cv::Size &size)
+{
+    _CellSize = size;
+}
+
+cv::Size HistogramOfOrientedGradients::BlockSize(void) const
+{
+    return _BlockSize;
+}
+
+void HistogramOfOrientedGradients::BlockSize(const cv::Size &size)
+{
+    _BlockSize = size;
+}
+
+int HistogramOfOrientedGradients::Bins(void) const
+{
+    return _Bins;
+}
+
+void HistogramOfOrientedGradients::Bins(int b)
+{
+    _Bins = b;
+}
+
+cv::Mat HistogramOfOrientedGradients::Mx(void) const
+{
+    return _Mx;
+}
+
+cv::Mat HistogramOfOrientedGradients::Mx(const cv::Mat &m)
+{
+    _Mx = m;
+}
+
+cv::Mat HistogramOfOrientedGradients::My(void) const
+{
+    return _My;
+}
+
+cv::Mat HistogramOfOrientedGradients::My(const cv::Mat &m)
+{
+    _My = m;
+}
