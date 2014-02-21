@@ -14,6 +14,7 @@ set(HEADERS)
 add_subdirectory(Feature)
 add_subdirectory(Distance)
 add_subdirectory(Similarity)
+add_subdirectory(Util)
 
 add_library(ColorTextureShape ${SOURCE} ${HEADERS})
 target_link_libraries(ColorTextureShape ${OpenCV_LIBS})

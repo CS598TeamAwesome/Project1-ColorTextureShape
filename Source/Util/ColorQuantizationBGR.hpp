@@ -2,12 +2,15 @@
 
 namespace ColorTextureShape
 {
-    class ColorQuantizationRGB
+
+    //quantizes 24bit BGR color space by dividing blue, green, and red dimensions evenly into user defined bins
+    class ColorQuantizationBGR
     {
         public:
-            ColorQuantizationRGB(int rq, int gq, int bq);
+            ColorQuantizationBGR(int rq, int gq, int bq);
+            ~ColorQuantizationBGR();
 
-            //takes a BGR256 color pixel and returns the bin#
+            //takes a 24bit BGR color pixel and returns the bin#
             int binForColor(cv::Vec3b pixel); //Vec3b is BGR ordered
 
             //iterates over the pixels in a Mat and maps their bins into a 2D int array
@@ -28,5 +31,10 @@ namespace ColorTextureShape
             int* b_ranges;
             int* g_ranges;
             int* r_ranges;
+
+            //mapping of 24bit color int bins
+            int*** mapping;
+
+            //reverse mapping of bins to color range
     };
 }
