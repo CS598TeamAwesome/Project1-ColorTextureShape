@@ -7,7 +7,7 @@ set(SOURCE
 
 set(HEADERS
     ${HEADERS}
-    ${CMAKE_CURRENT_SOURCE_DIR}/ColorQuantizationBGR.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ColorQuantizationBGR.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Convolve.hpp
     PARENT_SCOPE
 )
