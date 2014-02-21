@@ -2,6 +2,7 @@
 
 #include <opencv2/opencv.hpp>
 #include <vector>
+#include <functional>
 #include <algorithm>
 #include <numeric>
 #include <limits>
@@ -139,6 +140,16 @@ void ColorTextureShape::L2Norm(std::vector<double> &hist)
     double norm = std::sqrt(norm2);
         
     std::transform(hist.begin(), hist.end(), hist.begin(), [&norm](double histVal) { return histVal / norm; });
+}
+
+void ColorTextureShape::L2Hsys(std::vector<double> &hist)
+{
+    L2Norm(hist);
+    
+    auto greaterThanPoint2 = std::bind(std::greater<double>(), std::placeholders::_1, 0.2);
+    std::replace_if(hist.begin(), hist.end(), greaterThanPoint2, 0.2);
+    
+    L2Norm(hist);
 }
 
 void ColorTextureShape::L1Norm(std::vector<double> &hist)

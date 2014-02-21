@@ -13,6 +13,7 @@ namespace ColorTextureShape
     void L2Norm(std::vector<double> &);
     void L1Norm(std::vector<double> &);
     void L1Sqrt(std::vector<double> &);
+    void L2Hsys(std::vector<double> &);
 
     class HistogramOfOrientedGradients : public HistogramFeature
     {
