@@ -7,31 +7,58 @@
 using std::vector;
 
 using namespace ColorTextureShape;
-//TODO: should we flatten into a vector (1D double array), or leave that up to the distance functions
 
-ColorCorrelogram::ColorCorrelogram(int d){
+ColorCorrelogram::ColorCorrelogram(int d, bool set_auto){
     distance = d;
-    default_space = true;
+    auto_flag = set_auto;
     //use default 64 bin quantization
 }
 
-ColorCorrelogram::ColorCorrelogram(int d, ColorQuantizationBGR space){
+ColorCorrelogram::ColorCorrelogram(int d, bool set_auto, ColorQuantizationBGR space){
     distance = d;
-    default_space = false;
+    auto_flag = false;
     quantization = space;
-    //not sure if default quantization still gets called, but if so, need to destroy it
 }
 
-ColorCorrelogram::~ColorCorrelogram(){
-    if(default_space){
-        //since we made the space, we must destroy it
-        quantization.~ColorQuantizationBGR();
+std::vector<double> ColorCorrelogram::Compute(cv::Mat &img){
+    int color_ct = quantization.getBinCt();
+    vector<double> result;
+
+    if(!auto_flag){
+        double*** correlogram = computeFullCorrelogram(img);
+        for(int i = 0; i < color_ct; i++){
+            for(int j = 0; j < color_ct; j++){
+                for(int k = 1; k <= distance; k++){
+                    result.push_back(correlogram[i][j][k]);
+                }
+            }
+        }
+        deleteCorrelogram(correlogram);
+    } else {
+        double** autocorrelogram = computeAutoCorrelogram(img);
+        for(int i = 0; i < color_ct; i++){
+            for(int k = 1; k <= distance; k++){
+                result.push_back(autocorrelogram[i][k]);
+            }
+        }
+        deleteAutoCorrelogram(autocorrelogram);
     }
-    //otherwise, it was passed in, so we leave it alone
+
+    return result;
 }
 
-//distance should be less than the dimensions of the img
-double*** ColorCorrelogram::computeFullCorrelogram(cv::Mat img){
+/**
+ * @brief ColorCorrelogram::computeFullCorrelogram:
+ * Implements a dynamic programming efficiency suggestion found in the
+ * ([Huang97] Image indexing using color correlograms) paper. It reduces
+ * the counting problem to two passes over the image for each depth and
+ * for each color to build a table of lambda values. And then another pass
+ * over the image for each depth and for each color pair to calculate the
+ * correlogram values.
+ *
+ * The size of the return vector is O(m*m*d)
+ */
+double*** ColorCorrelogram::computeFullCorrelogram(cv::Mat &img){
     //how many colors (N) and their ranges are passed in as quantization
     int color_ct = quantization.getBinCt();
     int rows = img.rows;
@@ -78,7 +105,7 @@ double*** ColorCorrelogram::computeFullCorrelogram(cv::Mat img){
         correlogram[i] = new double*[color_ct];
         for(int j = 0; j < color_ct; j++){
             correlogram[i][j] = new double[distance+1];
-            for(int k = 1; k <= distance; k++){ //TODO: check if zero distances are needed
+            for(int k = 1; k <= distance; k++){
                 int uGammaCt;
                 //std::cout << i << ", " << j << std::endl;
                 if(hist[i] == 0 || hist[j] == 0){
@@ -87,7 +114,7 @@ double*** ColorCorrelogram::computeFullCorrelogram(cv::Mat img){
                 } else {
                     uGammaCt = uGammaValue(i, j, quantized_img, rows, columns, k, lambda_tables);
                     //divid by histogram count of color * 8k for correlogram value
-                    correlogram[i][j][k] = uGammaCt/(hist[i]*8.0*k); //TODO: if we need zeroes, need to fix divide by 0
+                    correlogram[i][j][k] = uGammaCt/(hist[i]*8.0*k);
                     //std::cout << i << "," << j << "," << k << "->" << correlogram[i][j][k] << std::endl;
                 }
             }
@@ -104,7 +131,7 @@ double*** ColorCorrelogram::computeFullCorrelogram(cv::Mat img){
     //histogram
     delete[] hist;
 
-    //destory lambda tables
+    //destroy lambda tables
     for(int i = 0; i < color_ct; i++){
         if(lambda_tables[2*i] != NULL)
             deleteLambdaTable(rows, columns, lambda_tables[2*i]);
@@ -112,13 +139,16 @@ double*** ColorCorrelogram::computeFullCorrelogram(cv::Mat img){
             deleteLambdaTable(rows, columns, lambda_tables[2*i+1]);
     }
 
-    //5. flatten into vector? or leave that up to the distance functions
-    //size = N * N * D = 64 * 64 * 10 = 40960
     return correlogram;
 }
 
-//distance should be less than the dimensions of the img
-double** ColorCorrelogram::computeAutoCorrelogram(cv::Mat img){
+/**
+ * @brief ColorCorrelogram::computeAutoCorrelogram
+ * Uses the same algorithm as full correlogram, except in the final
+ * calculation step, only need to consider the number of colors (m)
+ * rather than the number of color pairs (m*m)
+ */
+double** ColorCorrelogram::computeAutoCorrelogram(cv::Mat &img){
     //how many colors (N) and their ranges are passed in as quantization
     int color_ct = quantization.getBinCt();
     int rows = img.rows;
@@ -165,15 +195,13 @@ double** ColorCorrelogram::computeAutoCorrelogram(cv::Mat img){
         autocorrelogram[i] = new double[distance+1];
         for(int k = 1; k <= distance; k++){
             int uGammaCt;
-            //std::cout << i << ", " << j << std::endl;
             if(hist[i] == 0){
                 uGammaCt = 0;
                 autocorrelogram[i][k] = 0;
             } else {
                 uGammaCt = uGammaValue(i, i, quantized_img, rows, columns, k, lambda_tables);
                 //divid by histogram count of color * 8k for correlogram value
-                autocorrelogram[i][k] = uGammaCt/(hist[i]*8.0*k); //TODO: if we need zeroes, need to fix divide by 0
-                //std::cout << i << "," << k << "->" << autocorrelogram[i][k] << std::endl;
+                autocorrelogram[i][k] = uGammaCt/(hist[i]*8.0*k);
             }
         }
     }
@@ -188,7 +216,7 @@ double** ColorCorrelogram::computeAutoCorrelogram(cv::Mat img){
     //histogram
     delete[] hist;
 
-    //destory lambda tables
+    //destroy lambda tables
     for(int i = 0; i < color_ct; i++){
         if(lambda_tables[2*i] != NULL)
             deleteLambdaTable(rows, columns, lambda_tables[2*i]);
@@ -196,8 +224,6 @@ double** ColorCorrelogram::computeAutoCorrelogram(cv::Mat img){
             deleteLambdaTable(rows, columns, lambda_tables[2*i+1]);
     }
 
-    //5. flatten into vector? or leave that up to the distance functions
-    //size = N * D = 64 * 10 = 640
     return autocorrelogram;
 }
 
@@ -208,7 +234,6 @@ double** ColorCorrelogram::computeAutoCorrelogram(cv::Mat img){
  * @param q_img - a 2D array of the quantized color values from an img
  * @param rows - rows in img
  * @param columns - columns in img
- * @param d - the correlogram distance cap
  * @param dest - the resulting lambda table
  */
 int*** ColorCorrelogram::buildLambdaTable(int color, char direction, int** q_img, int rows, int columns){
@@ -258,7 +283,6 @@ int*** ColorCorrelogram::buildLambdaTable(int color, char direction, int** q_img
  * @param q_img - quantized image
  * @param rows - rows in image
  * @param columns - columns in image
- * @param distance - the distance limit
  * @param lambda_tables - lambda values for image
  * @return
  */

@@ -7,12 +7,13 @@ namespace ColorTextureShape
     class ColorCorrelogram : public HistogramFeature
     {
         public:
-            ColorCorrelogram(int d);
-            ColorCorrelogram(int d, ColorQuantizationBGR space);
-            ~ColorCorrelogram();
+            std::vector<double> Compute(cv::Mat &img);
 
-            double*** computeFullCorrelogram(cv::Mat img);
-            double** computeAutoCorrelogram(cv::Mat img);
+            ColorCorrelogram(int d, bool set_auto);
+            ColorCorrelogram(int d, bool set_auto, ColorQuantizationBGR space);
+
+            double*** computeFullCorrelogram(cv::Mat &img);
+            double** computeAutoCorrelogram(cv::Mat &img);
 
             void deleteCorrelogram(double*** correlogram);
             void deleteAutoCorrelogram(double** autocorrelogram);
@@ -24,7 +25,7 @@ namespace ColorTextureShape
 
         private:
             ColorQuantizationBGR quantization = ColorQuantizationBGR(4,4,4); //default 64 bin quantization
-            bool default_space = true;
+            bool auto_flag = false;
             int distance;
 
             int*** buildLambdaTable(int color, char direction, int** q_img, int rows, int columns);
