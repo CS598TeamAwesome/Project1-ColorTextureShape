@@ -19,7 +19,7 @@ namespace ColorTextureShape
         public:
             HistogramOfOrientedGradients(void);
             
-            double *Compute(cv::Mat &img);
+            std::vector<double> Compute(cv::Mat &img);
             
             cv::Size CellSize(void) const;
             void CellSize(const cv::Size &size);

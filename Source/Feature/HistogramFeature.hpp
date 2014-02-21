@@ -1,4 +1,5 @@
 #pragma once
+#include <vector>
 
 namespace cv 
 {
@@ -10,6 +11,6 @@ namespace ColorTextureShape
     class HistogramFeature
     {
         public: 
-            virtual double *Compute(cv::Mat &img) = 0;
+            virtual std::vector<double> Compute(cv::Mat &img) = 0;
     };
 }
