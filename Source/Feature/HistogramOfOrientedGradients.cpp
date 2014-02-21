@@ -91,9 +91,9 @@ std::vector<double> HistogramOfOrientedGradients::Compute(cv::Mat &img)
     
     int blockSize = _Bins * _BlockSize.width * _BlockSize.height;
     std::vector<std::vector<double>> blocks;
-    for(int i = 0; i < cellsX - _BlockSize.width; i+= blockStepX)
+    for(int i = 0; i < cellsX - _BlockSize.width + 1; i+= blockStepX)
     {        
-        for(int j = 0; j < cellsY - _BlockSize.height; j+= blockStepY)
+        for(int j = 0; j < cellsY - _BlockSize.height + 1; j+= blockStepY)
         {
             std::vector<double> block(blockSize, 0);
            
