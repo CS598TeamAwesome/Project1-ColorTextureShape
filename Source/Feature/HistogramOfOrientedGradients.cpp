@@ -16,7 +16,7 @@ HistogramOfOrientedGradients::HistogramOfOrientedGradients(void)
     _Mx = cv::Mat(1, 3, CV_64F, gradData);
 }
 
-double *HistogramOfOrientedGradients::Compute(cv::Mat &img)
+std::vector<double> HistogramOfOrientedGradients::Compute(cv::Mat &img)
 {
     // 1. Convert to grayscale
     cv::Mat gray;
@@ -33,12 +33,13 @@ double *HistogramOfOrientedGradients::Compute(cv::Mat &img)
     
     // 4. Divide image in cells 
     std::vector<cv::Mat> cellsH;
-    std::vector<cv::Mat> cellsV;
+    std::vector<cv::Mat> cellsV; 
+    
     for(int i = 0; i < img.cols; i+=_CellSize.width)
     {
         if(i + _CellSize.width > img.cols)
             continue;
-        
+
         for(int j = 0; j < img.rows; j+=_CellSize.height)
         {
             if(j + _CellSize.height > img.rows)
@@ -82,28 +83,29 @@ double *HistogramOfOrientedGradients::Compute(cv::Mat &img)
     });
     
     // 6. Divide cells into blocks with as close to 50% overlap as possible (preferring less overlap)
-    int blockStepX = (int)std::ceil(_BlockSize.width / 2);
-    int blockStepY = (int)std::ceil(_BlockSize.height / 2);
+    int blockStepX = (int)std::ceil(_BlockSize.width / 2.0);
+    int blockStepY = (int)std::ceil(_BlockSize.height / 2.0);
     
     int cellsX = (int)std::floor(img.cols / _CellSize.width);
     int cellsY = (int)std::floor(img.rows / _CellSize.height);
     
     int blockSize = _Bins * _BlockSize.width * _BlockSize.height;
     std::vector<std::vector<double>> blocks;
-    for(int i = 0; i < cellsX; i+= blockStepX)
-    {
-        for(int j = 0; j < cellsY; j+= blockStepY)
+    for(int i = 0; i < cellsX - _BlockSize.width; i+= blockStepX)
+    {        
+        for(int j = 0; j < cellsY - _BlockSize.height; j+= blockStepY)
         {
             std::vector<double> block(blockSize, 0);
            
-            for(int cx = i; cx < _BlockSize.width; cx++)
+            for(int cx = 0; cx < _BlockSize.width; cx++)
             {   
-                for(int cy = j; cy < _BlockSize.width; cy++)
+                for(int cy = 0; cy < _BlockSize.height; cy++)
                 {
-                    int cellIndex = cx + (cy * cellsX);
+                    int cellIndex = (cx + i) + ((cy + j) * cellsX);
+                    int blockIndex = cx + (cy * _BlockSize.width);
                     
-                    std::vector<double> hist = cellHistograms[cellIndex];
-                    std::copy(hist.begin(), hist.end(), block.begin() + (cellIndex * _Bins));
+                    std::vector<double> &hist = cellHistograms[cellIndex];
+                    std::copy(hist.begin(), hist.end(), block.begin() + (blockIndex * _Bins));
                 }
             }
             
@@ -118,8 +120,8 @@ double *HistogramOfOrientedGradients::Compute(cv::Mat &img)
     }
     
     // 8. Concatenate histograms for each block
-    double *finalDescriptor = new double[blocks.size() * blockSize];
-    double *descriptorIter = finalDescriptor;
+    std::vector<double> finalDescriptor(blocks.size() * blockSize, 0);
+    auto descriptorIter = finalDescriptor.begin();
     for(std::vector<double> &histogram : blocks)
     {
         std::copy(histogram.begin(), histogram.end(), descriptorIter);
