@@ -3,6 +3,8 @@
 #include <opencv2/opencv.hpp>
 #include <vector>
 #include <algorithm>
+#include <numeric>
+#include <limits>
 #include <cmath>
 
 using namespace ColorTextureShape;
@@ -48,11 +50,11 @@ double *HistogramOfOrientedGradients::Compute(cv::Mat &img)
     }
     
     // 5. Compute histogram for each cell 
-    std::vector<double *> cellHistograms(cellsH.size());
+    std::vector<std::vector<double>> cellHistograms(cellsH.size());
     std::transform(cellsH.begin(), cellsH.end(), cellsV.begin(), cellHistograms.begin(),
     [this](cv::Mat &gradH, cv::Mat &gradV)
     {
-        double *histogram = new double[_Bins](); 
+        std::vector<double> histogram(_Bins, 0);
         
         for(int i = 0; i < gradH.cols; i++)
         {
@@ -63,7 +65,7 @@ double *HistogramOfOrientedGradients::Compute(cv::Mat &img)
                 
                 if(h != 0 || v != 0)
                 {
-                    double angle = std::abs(std::atan2(v, h));
+                    double angle = std::abs(std::atan2(v, h)); // using unsigned angles
                     double mag = std::sqrt((h * h) + (v * v));
                     
                     int bin = (int)std::floor(_Bins * angle / M_PI);
@@ -79,20 +81,77 @@ double *HistogramOfOrientedGradients::Compute(cv::Mat &img)
         return histogram;
     });
     
-    // 6. Divide cells into overlapping blocks 
+    // 6. Divide cells into blocks with as close to 50% overlap as possible (preferring less overlap)
+    int blockStepX = (int)std::ceil(_BlockSize.width / 2);
+    int blockStepY = (int)std::ceil(_BlockSize.height / 2);
+    
+    int cellsX = (int)std::floor(img.cols / _CellSize.width);
+    int cellsY = (int)std::floor(img.rows / _CellSize.height);
+    
+    int blockSize = _Bins * _BlockSize.width * _BlockSize.height;
+    std::vector<std::vector<double>> blocks;
+    for(int i = 0; i < cellsX; i+= blockStepX)
+    {
+        for(int j = 0; j < cellsY; j+= blockStepY)
+        {
+            std::vector<double> block(blockSize, 0);
+           
+            for(int cx = i; cx < _BlockSize.width; cx++)
+            {   
+                for(int cy = j; cy < _BlockSize.width; cy++)
+                {
+                    int cellIndex = cx + (cy * cellsX);
+                    
+                    std::vector<double> hist = cellHistograms[cellIndex];
+                    std::copy(hist.begin(), hist.end(), block.begin() + (cellIndex * _Bins));
+                }
+            }
+            
+            blocks.push_back(block);
+        }
+    }
     
     // 7. Normalize histograms for each cell in a block
-    
-    // 8. Concatenate histograms for each cell
-    double *finalDescriptor = new double[cellHistograms.size() * _Bins];
-    double *descriptorIter = finalDescriptor;
-    for(double *histogram : cellHistograms)
+    for(std::vector<double> &hist : blocks)
     {
-        std::copy(histogram, histogram + _Bins, descriptorIter);
-        descriptorIter += _Bins;
+        _Norm(hist);
+    }
+    
+    // 8. Concatenate histograms for each block
+    double *finalDescriptor = new double[blocks.size() * blockSize];
+    double *descriptorIter = finalDescriptor;
+    for(std::vector<double> &histogram : blocks)
+    {
+        std::copy(histogram.begin(), histogram.end(), descriptorIter);
+        descriptorIter += blockSize;
     }
     
     return finalDescriptor;
+}
+
+void ColorTextureShape::L2Norm(std::vector<double> &hist)
+{
+    double e = std::numeric_limits<double>::epsilon();
+    
+    double norm2 = std::accumulate(hist.begin(), hist.end(), e * e, [](double accum, double elem) { return accum + elem * elem; });
+    double norm = std::sqrt(norm2);
+        
+    std::transform(hist.begin(), hist.end(), hist.begin(), [&norm](double histVal) { return histVal / norm; });
+}
+
+void ColorTextureShape::L1Norm(std::vector<double> &hist)
+{
+    double e = std::numeric_limits<double>::epsilon();
+    
+    double norm = std::accumulate(hist.begin(), hist.end(), e);
+    
+    std::transform(hist.begin(), hist.end(), hist.begin(), [&norm](double histVal) { return histVal / norm; });
+}
+
+void ColorTextureShape::L1Sqrt(std::vector<double> &hist)
+{
+    L1Norm(hist);
+    std::transform(hist.begin(), hist.end(), hist.begin(), std::ptr_fun<double, double>(std::sqrt));
 }
 
 cv::Size HistogramOfOrientedGradients::CellSize(void) const
@@ -130,7 +189,7 @@ cv::Mat HistogramOfOrientedGradients::Mx(void) const
     return _Mx;
 }
 
-cv::Mat HistogramOfOrientedGradients::Mx(const cv::Mat &m)
+void HistogramOfOrientedGradients::Mx(const cv::Mat &m)
 {
     _Mx = m;
 }
@@ -140,7 +199,17 @@ cv::Mat HistogramOfOrientedGradients::My(void) const
     return _My;
 }
 
-cv::Mat HistogramOfOrientedGradients::My(const cv::Mat &m)
+void  HistogramOfOrientedGradients::My(const cv::Mat &m)
 {
     _My = m;
+}
+
+NormStrategy HistogramOfOrientedGradients::Norm(void) const
+{
+    return _Norm;
+}
+
+void HistogramOfOrientedGradients::Norm(NormStrategy &n)
+{
+    _Norm = n;
 }
