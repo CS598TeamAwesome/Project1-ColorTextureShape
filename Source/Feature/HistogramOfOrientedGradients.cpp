@@ -38,16 +38,10 @@ std::vector<double> HistogramOfOrientedGradients::Compute(cv::Mat &img)
     std::vector<cv::Mat> cellsH;
     std::vector<cv::Mat> cellsV; 
     
-    for(int i = 0; i < img.cols; i+=_CellSize.width)
+    for(int j = 0; j < img.rows - _CellSize.height + 1; j+=_CellSize.height)
     {
-        if(i + _CellSize.width > img.cols)
-            continue;
-
-        for(int j = 0; j < img.rows; j+=_CellSize.height)
-        {
-            if(j + _CellSize.height > img.rows)
-                continue;
-            
+        for(int i = 0; i < img.cols - _CellSize.width + 1; i+=_CellSize.width)
+        {            
             cellsH.push_back(gradH(cv::Rect(cv::Point(i, j), _CellSize)));
             cellsV.push_back(gradV(cv::Rect(cv::Point(i, j), _CellSize)));
         }
@@ -60,10 +54,10 @@ std::vector<double> HistogramOfOrientedGradients::Compute(cv::Mat &img)
     {
         std::vector<double> histogram(_Bins, 0);
         
-        for(int i = 0; i < gradH.cols; i++)
+        for(int j = 0; j < gradH.rows; j++)
         {
-            for(int j = 0; j < gradH.rows; j++)
-            {
+            for(int i = 0; i < gradH.cols; i++)
+            {    
                 double h = gradH.at<double>(j, i);
                 double v = gradV.at<double>(j, i);
                 
@@ -94,10 +88,10 @@ std::vector<double> HistogramOfOrientedGradients::Compute(cv::Mat &img)
     
     int blockSize = _Bins * _BlockSize.width * _BlockSize.height;
     std::vector<std::vector<double>> blocks;
-    for(int i = 0; i < cellsX - _BlockSize.width + 1; i+= blockStepX)
-    {        
-        for(int j = 0; j < cellsY - _BlockSize.height + 1; j+= blockStepY)
-        {
+    for(int j = 0; j < cellsY - _BlockSize.height + 1; j+= blockStepY)
+    {
+        for(int i = 0; i < cellsX - _BlockSize.width + 1; i+= blockStepX)
+        {        
             std::vector<double> block(blockSize, 0);
            
             for(int cx = 0; cx < _BlockSize.width; cx++)
