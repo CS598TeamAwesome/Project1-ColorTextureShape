@@ -1,4 +1,5 @@
 #include "HistogramOfOrientedGradients.hpp"
+#include "../Util/Convolve.hpp"
 
 #include <opencv2/opencv.hpp>
 #include <vector>
@@ -7,6 +8,7 @@
 #include <numeric>
 #include <limits>
 #include <cmath>
+
 
 using namespace ColorTextureShape;
 
@@ -29,8 +31,8 @@ std::vector<double> HistogramOfOrientedGradients::Compute(cv::Mat &img)
 
     // 3. Compute the horizontal and vertical gradients    
     cv::Mat gradH, gradV;
-    cv::filter2D(dblImg, gradH, CV_64F, _Mx); 
-    cv::filter2D(dblImg, gradV, CV_64F, _My);
+    CenterConvolve(dblImg, gradH, _Mx); 
+    CenterConvolve(dblImg, gradV, _My);
     
     // 4. Divide image in cells 
     std::vector<cv::Mat> cellsH;
