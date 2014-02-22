@@ -84,24 +84,23 @@ double*** ColorCorrelogram::computeFullCorrelogram(cv::Mat &img){
         }
     }
 
-    //2. build lambda tables -- may want to make these fields and lazy load them
-
-    //a horizontal and a vertical table for each color
-    int**** lambda_tables = new int***[color_ct*2];
-    for(int i = 0; i < color_ct; i++){
-        if(hist[i] == 0){ //no pixels quantized to that color, so setting to NULL
-            lambda_tables[2*i] = NULL;
-            lambda_tables[2*i+1] = NULL;
-        } else {
-            lambda_tables[2*i] = buildLambdaTable(i, 'h', quantized_img, rows, columns);
-            lambda_tables[2*i+1] = buildLambdaTable(i, 'v', quantized_img, rows, columns);
-        }
-    }
-    //PERFORMANCE: some colors may be very sparse, so we may be able to save space
-
-    //3a. use gamma results to construct full correlogram
     double*** correlogram = new double**[color_ct];
     for(int i = 0; i < color_ct; i++){
+
+        //2. for each color build lambda tables
+        //a horizontal and a vertical table for each color
+        int*** lambda_h;
+        int*** lambda_v;
+
+        if(hist[i] == 0){ //no pixels quantized to that color, so setting to NULL
+            lambda_h = NULL;
+            lambda_v = NULL;
+        } else {
+            lambda_h = buildLambdaTable(i, 'h', quantized_img, rows, columns);
+            lambda_v = buildLambdaTable(i, 'v', quantized_img, rows, columns);
+        }
+
+        //3a. use gamma results to construct correlogram sections for color2's lambda tables computed about
         correlogram[i] = new double*[color_ct];
         for(int j = 0; j < color_ct; j++){
             correlogram[i][j] = new double[distance+1];
@@ -112,14 +111,22 @@ double*** ColorCorrelogram::computeFullCorrelogram(cv::Mat &img){
                     uGammaCt = 0;
                     correlogram[i][j][k] = 0;
                 } else {
-                    uGammaCt = uGammaValue(i, j, quantized_img, rows, columns, k, lambda_tables);
+                    uGammaCt = uGammaValue(j, quantized_img, rows, columns, k, lambda_h, lambda_v);
                     //divid by histogram count of color * 8k for correlogram value
                     correlogram[i][j][k] = uGammaCt/(hist[i]*8.0*k);
-                    //std::cout << i << "," << j << "," << k << "->" << correlogram[i][j][k] << std::endl;
+                    //i and j are transposed from the formula in the reference
                 }
             }
         }
+
+        //lambda tables for this color won't be use again, so destory them to free up memory
+        if(lambda_h != NULL)
+            deleteLambdaTable(rows, columns, lambda_h);
+        if(lambda_v != NULL)
+            deleteLambdaTable(rows, columns, lambda_v);
     }
+    //PERFORMANCE: some colors may be very sparse, so we may be able to save space
+
 
     //4. cleanup
     //quantized image
@@ -130,14 +137,6 @@ double*** ColorCorrelogram::computeFullCorrelogram(cv::Mat &img){
 
     //histogram
     delete[] hist;
-
-    //destroy lambda tables
-    for(int i = 0; i < color_ct; i++){
-        if(lambda_tables[2*i] != NULL)
-            deleteLambdaTable(rows, columns, lambda_tables[2*i]);
-        if(lambda_tables[2*i+1] != NULL)
-            deleteLambdaTable(rows, columns, lambda_tables[2*i+1]);
-    }
 
     return correlogram;
 }
@@ -174,24 +173,23 @@ double** ColorCorrelogram::computeAutoCorrelogram(cv::Mat &img){
         }
     }
 
-    //2. build lambda tables -- may want to make these fields and lazy load them
-
-    //a horizontal and a vertical table for each color
-    int**** lambda_tables = new int***[color_ct*2];
-    for(int i = 0; i < color_ct; i++){
-        if(hist[i] == 0){ //no pixels quantized to that color, so setting to NULL
-            lambda_tables[2*i] = NULL;
-            lambda_tables[2*i+1] = NULL;
-        } else {
-            lambda_tables[2*i] = buildLambdaTable(i, 'h', quantized_img, rows, columns);
-            lambda_tables[2*i+1] = buildLambdaTable(i, 'v', quantized_img, rows, columns);
-        }
-    }
-    //PERFORMANCE: some colors may be very sparse, so we may be able to save space
-
-    //3b. build for auto-correlogram
     double** autocorrelogram = new double*[color_ct];
+
     for(int i = 0; i < color_ct; i++){
+
+        //2. for each color, build lambda tables for that color
+        //a horizontal and a vertical table for each color
+        int*** lambda_h;
+        int*** lambda_v;
+        if(hist[i] == 0){ //no pixels quantized to that color, so done
+            lambda_h = NULL;
+            lambda_v = NULL;
+        } else {
+            lambda_h = buildLambdaTable(i, 'h', quantized_img, rows, columns);
+            lambda_v = buildLambdaTable(i, 'v', quantized_img, rows, columns);
+        }
+
+        //3b. fill auto-correlogram section for color
         autocorrelogram[i] = new double[distance+1];
         for(int k = 1; k <= distance; k++){
             int uGammaCt;
@@ -199,12 +197,19 @@ double** ColorCorrelogram::computeAutoCorrelogram(cv::Mat &img){
                 uGammaCt = 0;
                 autocorrelogram[i][k] = 0;
             } else {
-                uGammaCt = uGammaValue(i, i, quantized_img, rows, columns, k, lambda_tables);
+                uGammaCt = uGammaValue(i, quantized_img, rows, columns, k, lambda_h, lambda_v);
                 //divid by histogram count of color * 8k for correlogram value
                 autocorrelogram[i][k] = uGammaCt/(hist[i]*8.0*k);
             }
         }
+
+        //lambda table for color won't be used again, so destroy to free memory
+        if(lambda_h != NULL)
+            deleteLambdaTable(rows, columns, lambda_h);
+        if(lambda_v != NULL)
+            deleteLambdaTable(rows, columns, lambda_v);
     }
+    //PERFORMANCE: some colors may be very sparse, so we may be able to save space
 
     //4. cleanup
     //quantized image
@@ -215,14 +220,6 @@ double** ColorCorrelogram::computeAutoCorrelogram(cv::Mat &img){
 
     //histogram
     delete[] hist;
-
-    //destroy lambda tables
-    for(int i = 0; i < color_ct; i++){
-        if(lambda_tables[2*i] != NULL)
-            deleteLambdaTable(rows, columns, lambda_tables[2*i]);
-        if(lambda_tables[2*i+1] != NULL)
-            deleteLambdaTable(rows, columns, lambda_tables[2*i+1]);
-    }
 
     return autocorrelogram;
 }
@@ -276,17 +273,17 @@ int*** ColorCorrelogram::buildLambdaTable(int color, char direction, int** q_img
 }
 
 /**
- * @brief uGammaValue - gets the result of the big gamma function, given color1, color2, and k
+ * @brief uGammaValue - gets the result of the big gamma function, given color1, the lambda tables for color2, and k
  * @param color1 - the color of the pixels we are using as centers
- * @param color2 - the color of the pixels that we are counting around the center pixel
  * @param k - the distance from the center pixel we are looking
  * @param q_img - quantized image
  * @param rows - rows in image
  * @param columns - columns in image
- * @param lambda_tables - lambda values for image
+ * @param lambda_h - horizontal lambda values for color2
+ * @param lambda_v - vertical lambda values for color2
  * @return
  */
-int ColorCorrelogram::uGammaValue(int color1, int color2, int** q_img, int rows, int columns, int k, int**** lambda_tables){
+int ColorCorrelogram::uGammaValue(int color1, int** q_img, int rows, int columns, int k, int*** lambda_h, int*** lambda_v){
     int uGammaCt = 0;
     for(int i = 0; i < rows; i++){
         for(int j = 0; j < columns; j++){
@@ -294,16 +291,16 @@ int ColorCorrelogram::uGammaValue(int color1, int color2, int** q_img, int rows,
 
                 if(2*k <= distance){ //boundary checks
                     if(i-k >= 0 && j+k < columns)
-                        uGammaCt += lambda_tables[2*color2][i-k][j+k][2*k];
+                        uGammaCt += lambda_h[i-k][j+k][2*k];
                     if(i-k >= 0 && j-k >= 0)
-                        uGammaCt += lambda_tables[2*color2][i-k][j-k][2*k];
+                        uGammaCt += lambda_h[i-k][j-k][2*k];
                 }
 
                 if(2*k - 2 <= distance){ //boundary checks
                     if(i-k >= 0 && j-k+1 >= 0)
-                        uGammaCt += lambda_tables[2*color2+1][i-k][j-k+1][2*k-2];
+                        uGammaCt += lambda_v[i-k][j-k+1][2*k-2];
                     if(i+k < rows && j-k+1 >= 0)
-                        uGammaCt += lambda_tables[2*color2+1][i+k][j-k+1][2*k-2];
+                        uGammaCt += lambda_v[i+k][j-k+1][2*k-2];
                 }
             }
         }

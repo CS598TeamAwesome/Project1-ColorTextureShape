@@ -30,6 +30,6 @@ namespace ColorTextureShape
 
             int*** buildLambdaTable(int color, char direction, int** q_img, int rows, int columns);
             void deleteLambdaTable(int rows, int columns, int*** lambda);
-            int uGammaValue(int color1, int color2, int** q_img, int rows, int columns, int k, int**** lambda_tables);
+            int uGammaValue(int color1, int** q_img, int rows, int columns, int k, int*** lambda_h, int*** lambda_v);
     };
 }
