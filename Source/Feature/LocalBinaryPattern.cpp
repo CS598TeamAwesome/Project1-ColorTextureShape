@@ -5,9 +5,9 @@
 using namespace cv;
 using namespace ColorTextureShape;
 
-Hist LocalBinaryPattern::LBP_Hist( Mat& img )
+vector<LBP> LocalBinaryPattern::LBP_Hist( Mat& img )
 {
-	Hist hist;
+	vector<LBP> hist;
 
 	for ( int i = 1; i < (img.rows - 1); i++ )
 	{
@@ -15,81 +15,57 @@ Hist LocalBinaryPattern::LBP_Hist( Mat& img )
 		{
 			Vec3b pix = img.at<Vec3b>(i, j);
 
-			char lbp_temp_blue[8];
-			char lbp_temp_green[8];
-			char lbp_temp_red[8];
+			// Calculate the grayscale value of the pixel
+			int gray = ( pix.val[2]*299 + pix.val[1]*587 + pix.val[0]*114 + 500)/1000;
 
-			// pick up rgb channels for one pixel
-			int blue = (int)pix.val[0];
-			int green = (int)pix.val[1];
-			int red = (int)pix.val[2];
+			char lbp_temp[8];
 
 			// left up
 			Vec3b channel_temp = img.at<Vec3b>(i-1, j-1);
 
-			lbp_temp_blue[0] = Value_Compare( channel_temp, 'b', blue );
-			lbp_temp_green[0] = Value_Compare( channel_temp, 'g', green );
-			lbp_temp_red[0] = Value_Compare( channel_temp, 'r', red );
+			lbp_temp[0] = Value_Compare( channel_temp, gray );
 
 			// up
 			channel_temp = img.at<Vec3b>(i-1, j);
 
-			lbp_temp_blue[1] = Value_Compare( channel_temp, 'b', blue );
-			lbp_temp_green[1] = Value_Compare( channel_temp, 'g', green );
-			lbp_temp_red[1] = Value_Compare( channel_temp, 'r', red );
+			lbp_temp[1] = Value_Compare( channel_temp, gray );
 
 			// right up
 			channel_temp = img.at<Vec3b>(i-1, j+1);
-			lbp_temp_blue[2] = Value_Compare( channel_temp, 'b', blue );
-			lbp_temp_green[2] = Value_Compare( channel_temp, 'g', green );
-			lbp_temp_red[2] = Value_Compare( channel_temp, 'r', red );
+			lbp_temp[2] = Value_Compare( channel_temp, gray );
 
 			// right
 			channel_temp = img.at<Vec3b>(i, j+1);
-			lbp_temp_blue[3] = Value_Compare( channel_temp, 'b', blue );
-			lbp_temp_green[3] = Value_Compare( channel_temp, 'g', green );
-			lbp_temp_red[3] = Value_Compare( channel_temp, 'r', red );
+			lbp_temp[3] = Value_Compare( channel_temp, gray );
 
 			//right down
 			channel_temp = img.at<Vec3b>(i+1, j+1);
-			lbp_temp_blue[4] = Value_Compare( channel_temp, 'b', blue );
-			lbp_temp_green[4] = Value_Compare( channel_temp, 'g', green );
-			lbp_temp_red[4] = Value_Compare( channel_temp, 'r', red );
+			lbp_temp[4] = Value_Compare( channel_temp, gray );
 
 			// down
 			channel_temp = img.at<Vec3b>(i+1, j);
-			lbp_temp_blue[5] = Value_Compare( channel_temp, 'b', blue );
-			lbp_temp_green[5] = Value_Compare( channel_temp, 'g', green );
-			lbp_temp_red[5] = Value_Compare( channel_temp, 'r', red );
+			lbp_temp[5] = Value_Compare( channel_temp, gray );
 
 			// down left
 			channel_temp = img.at<Vec3b>(i+1, j-1);
-			lbp_temp_blue[6] = Value_Compare( channel_temp, 'b', blue );
-			lbp_temp_green[6] = Value_Compare( channel_temp, 'g', green );
-			lbp_temp_red[6] = Value_Compare( channel_temp, 'r', red );
+			lbp_temp[6] = Value_Compare( channel_temp, gray );
 
 			//left
 			channel_temp = img.at<Vec3b>(i, j-1);
-			lbp_temp_blue[7] = Value_Compare( channel_temp, 'b', blue );
-			lbp_temp_green[7] = Value_Compare( channel_temp, 'g', green );
-			lbp_temp_red[7] = Value_Compare( channel_temp, 'r', red );
+			lbp_temp[7] = Value_Compare( channel_temp, gray );
 
-			char* t_b = MoveBinary( lbp_temp_blue );
-			char* t_g = MoveBinary( lbp_temp_green );
-			char* t_r = MoveBinary( lbp_temp_red );
+			char* t = MoveBinary( lbp_temp );
 
-			int bin_b = B2D( t_b );
-			int bin_g = B2D( t_g );
-			int bin_r = B2D( t_r );
+			int bin = B2D( t );
 
 			// blue_hist
 			bool isexist = false;
-			for ( int k = 0; k < hist.hist_blue.size(); k++ )
+			for ( int k = 0; k < hist.size(); k++ )
 			{
 				// search for the values that are already exist
-				if ( hist.hist_blue[k].bin_id == bin_b )
+				if ( hist[k].bin_id == bin )
 				{
-					hist.hist_blue[k].hist_value += 1;
+					hist[k].hist_value += 1;
 					isexist = true;
 					break;
 				}
@@ -99,60 +75,14 @@ Hist LocalBinaryPattern::LBP_Hist( Mat& img )
 			if ( isexist == false )
 			{
 				LBP temp;
-				temp.bin_id = bin_b;
+				temp.bin_id = bin;
 				temp.hist_value = 1;
-				hist.hist_blue.push_back(temp);
-			}
-
-			// green_hist
-			isexist = false;
-			for ( int k = 0; k < hist.hist_green.size(); k++ )
-			{
-				// search for the values that are already exist
-				if ( hist.hist_green[k].bin_id == bin_g )
-				{
-					hist.hist_green[k].hist_value += 1;
-					isexist = true;
-					break;
-				}
-			}
-
-			// if the LBP is not exist in the vector
-			if ( isexist == false )
-			{
-				LBP temp;
-				temp.bin_id = bin_g;
-				temp.hist_value = 1;
-				hist.hist_green.push_back(temp);
-			}
-
-			//red_hist
-			isexist = false;
-			for ( int k = 0; k < hist.hist_red.size(); k++ )
-			{
-				// search for the values that are already exist
-				if ( hist.hist_red[k].bin_id == bin_r )
-				{
-					hist.hist_red[k].hist_value += 1;
-					isexist = true;
-					break;
-				}
-			}
-
-			// if the LBP is not exist in the vector
-			if ( isexist == false )
-			{
-				LBP temp;
-				temp.bin_id = bin_r;
-				temp.hist_value = 1;
-				hist.hist_red.push_back(temp);
+				hist.push_back(temp);
 			}
 		}
 	}
 
-	Sort( hist.hist_blue, 0, hist.hist_blue.size()-1 );
-	Sort( hist.hist_green, 0, hist.hist_green.size()-1 );
-	Sort( hist.hist_red, 0, hist.hist_red.size()-1 );
+	Sort( hist, 0, (hist.size()-1) );
 
 	return hist;
 }
@@ -167,48 +97,20 @@ int LocalBinaryPattern::B2D( char str[8] )
 	return (int)val;
 }
 
-char LocalBinaryPattern::Value_Compare( Vec3b pix_val, char channel, int val )
+char LocalBinaryPattern::Value_Compare( Vec3b pix_val, int val )
 {
 	char feedback;
 
-	switch ( channel )
+	int gray = ( pix_val.val[2]*299 + pix_val.val[1]*587 + pix_val.val[0]*114 + 500)/1000;
+
+	// blue LBP
+	if ( gray >= val )
 	{
-	case 'b':
-		// blue LBP
-		if ( (int)pix_val.val[0] >= val )
-		{
-			return feedback = '1';
-		}
-		else 
-		{
-			return feedback = '0';
-		}
-		break;
-	case 'g':
-		// green LBP
-		if ( (int)pix_val.val[1] >= val )
-		{
-			return feedback = '1';
-		}
-		else
-		{
-			return feedback = '0';
-		}
-		break;
-	case 'r':
-		// red LBP
-		if ( (int)pix_val.val[2] >= val )
-		{
-			return feedback = '1';
-		}
-		else
-		{
-			return feedback = '0';
-		}
-		break;
-	default:
-		return 1;
-		break;
+		return feedback = '1';
+	}
+	else 
+	{
+		return feedback = '0';
 	}
 }
 
