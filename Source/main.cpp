@@ -15,8 +15,6 @@ int main(int argc, char **argv)
     {
         csv << bin << ",";
     }
-    
-    std::cin.get();
-    
+   
     return 0;
 }
