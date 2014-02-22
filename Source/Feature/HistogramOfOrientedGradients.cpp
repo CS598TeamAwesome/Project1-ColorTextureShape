@@ -138,7 +138,7 @@ void ColorTextureShape::L2Norm(std::vector<double> &hist)
     std::transform(hist.begin(), hist.end(), hist.begin(), [&norm](double histVal) { return histVal / norm; });
 }
 
-void ColorTextureShape::L2Hsys(std::vector<double> &hist)
+void ColorTextureShape::L2Hys(std::vector<double> &hist)
 {
     L2Norm(hist);
     
