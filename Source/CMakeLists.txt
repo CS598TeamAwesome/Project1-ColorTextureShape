@@ -19,5 +19,5 @@ add_subdirectory(Util)
 add_library(ColorTextureShape ${SOURCE} ${HEADERS})
 target_link_libraries(ColorTextureShape ${OpenCV_LIBS})
 
-add_executable(Test main.cpp)
+add_executable(Test Test.cpp)
 target_link_libraries(Test ColorTextureShape)
