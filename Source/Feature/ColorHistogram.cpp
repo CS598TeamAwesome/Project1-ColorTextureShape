@@ -1,5 +1,5 @@
-#include <opencv2/highgui/highgui.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
+#include "ColorHistogram.hpp"
+#include <opencv2/opencv.hpp>
 #include <stdio.h>
 #include <iostream>
 #include <iterator>
@@ -9,10 +9,17 @@
 using namespace cv;
 using namespace std;
 
-//vector<int> hist;
+using namespace ColorTextureShape;
 
-vector<int> calculateHist(Mat& img, int bq, int gq, int rq){
-	vector<int> hist;
+ColorHistogram::ColorHistogram(int bq, int gq, int rq)
+{
+    this->bq = bq;
+    this->gq = gq;
+    this->rq = rq;
+}
+
+vector<double> ColorHistogram::Compute(Mat& img){
+	vector<double> hist;
 	int nc = img.channels();
 	int bin = rq*gq*bq;
 	vector<int> valList;
@@ -83,15 +90,4 @@ vector<int> calculateHist(Mat& img, int bq, int gq, int rq){
 	}
 
 	return hist;
-}
-
-int main()
-{
-    Mat src = imread("test.jpg");
-    if (src.empty())
-        return -1;
-
-    vector<int> histogram =calculateHist(src,4,4,4);
-	system("pause");
-	return 0;
 }
