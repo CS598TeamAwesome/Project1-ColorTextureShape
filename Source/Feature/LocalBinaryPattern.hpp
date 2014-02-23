@@ -1,4 +1,8 @@
+#pragma once
+
 #include "HistogramFeature.hpp"
+#include <opencv2/opencv.hpp>
+#include <vector>
 
 namespace ColorTextureShape
 {
@@ -16,18 +20,18 @@ namespace ColorTextureShape
 		int B2D( char str[8] );
 
 		// Generate one bit for LBP
-		char Value_Compare( Vec3b pix_val, int val );
+		char Value_Compare( cv::Vec3b pix_val, int val );
 
 		// Exclude the same type of texture
 		char* MoveBinary( char temp[8] );
 
 		//---------Quick Sort Part----------//
-		int partition( vector<LBP> hist_channel, int p, int r );
+		int partition( std::vector<LBP> hist_channel, int p, int r );
 
-		void Sort( vector<LBP> hist_channel, int p, int r );
+		void Sort( std::vector<LBP> hist_channel, int p, int r );
 		//---------------------------------//
 
 		//Generate LBP Histogram
-		vector<LBP> LBP_Hist( Mat& img );
+		std::vector<LBP> LBP_Hist( cv::Mat& img );
 	};
 }

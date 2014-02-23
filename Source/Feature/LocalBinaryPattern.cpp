@@ -1,5 +1,3 @@
-#include <vector>
-#include <opencv2\opencv.hpp>
 #include "LocalBinaryPattern.hpp"
 
 using namespace cv;
