@@ -32,9 +32,6 @@ vector<double> ColorHistogram::Compute(Mat& img){
 		hist.insert(hist.begin()+i,0);
 	}
 
-	//for(int i = 0; i < bq*gq*rq; i++){
-	//	cout << hist.at(i) <<" ";
-	//}
 
 	for(int i = 0; i < img.rows; i++){
 		for(int j = 0; j < img.cols; j++){
@@ -59,12 +56,6 @@ vector<double> ColorHistogram::Compute(Mat& img){
 						float rVal = r*256/rq-1;					
 						if(blueInt > pbVal && blueInt <= bVal && greenInt > pgVal && greenInt <= gVal && redInt > prVal && redInt <= rVal){	
 							hist.at(it2) += 1;	
-							//if(it == 1000){
-							//	cout << blueInt << ":" << bVal << endl;
-							//	cout << greenInt << ":" << gVal << endl;
-							//	cout << redInt << ":" << rVal << endl;
-							//	cout << it2 << endl;
-							//}
 							break;
 						}
 						else{
@@ -73,15 +64,6 @@ vector<double> ColorHistogram::Compute(Mat& img){
 					}
 				}
 			}
-			
-			//float lum = 0.3*redInt+0.59*greenInt+0.11*blueInt;
-			//blueList.insert(blueList.begin()+it,blueInt);
-			//greenList.insert(greenList.begin()+it,greenInt);
-			//redList.insert(redList.begin()+it,greenInt);
-			//lumList.insert(lumList.begin()+it,lum);			
-			//if(it < 10){
-			//	cout << it<<":"<<histBlue[7] << " "<<endl;
-			//}
 		}
 	}
 
