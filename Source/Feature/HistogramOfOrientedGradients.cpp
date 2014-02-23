@@ -14,9 +14,10 @@ using namespace ColorTextureShape;
 
 HistogramOfOrientedGradients::HistogramOfOrientedGradients(void)
 {
-    double gradData[] = {-1, 0, 1};
-    _My = cv::Mat(3, 1, CV_64F, gradData);
-    _Mx = cv::Mat(1, 3, CV_64F, gradData);
+    double gradData[3] = {-1, 0, 1};
+    
+    _My = cv::Mat(3, 1, CV_64F, gradData).clone();
+    _Mx = cv::Mat(1, 3, CV_64F, gradData).clone();
 }
 
 std::vector<double> HistogramOfOrientedGradients::Compute(cv::Mat &img)
