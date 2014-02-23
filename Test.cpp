@@ -4,6 +4,7 @@
 #include <iostream>
 #include <vector>
 #include <algorithm>
+#include <fstream>
 #include <sstream>
 #include "Feature/ColorCorrelogram.hpp"
 #include "Feature/ColorHistogram.hpp"
@@ -11,6 +12,12 @@
 #include <cmath>
 using std::vector;
 using namespace ColorTextureShape;
+
+struct distance_measure {
+    int src_img;
+    int dest_img;
+    double distance;
+};
 
 //assumes vectors are same length
 double getL1Distance(vector<double> v1, vector<double> v2){
@@ -21,9 +28,10 @@ double getL1Distance(vector<double> v1, vector<double> v2){
     double sum = 0;
 
     for(int i = 0; i < v1.size(); i++){
-        sum += std::abs(v1.at(i) - v2.at(i))/(1 + v1.at(i) + v2.at(i));
+        if(v1.at(i) - v2.at(i) != 0){
+            sum += std::abs(v1.at(i) - v2.at(i))/(1 + v1.at(i) + v2.at(i));
+        }
     }
-
     return sum;
 }
 
@@ -64,7 +72,7 @@ void build_histograms(vector<double>* histograms, cv::Mat* images, int size){
 
 void build_correlograms(vector<double>* correlograms, cv::Mat* images, int size){
     //autocorrelogram of max distance 1
-    ColorCorrelogram cc1(3, true);
+    ColorCorrelogram cc1(5, true);
 
     std::cout << "Building Correlograms" << std::endl;
     clock_t start = clock();
@@ -91,20 +99,35 @@ void build_hogs(vector<double>* hogs, cv::Mat* images, int size){
         int inner_start = clock();
 
         hogs[i] = h1.Compute(images[i]);
-
+/*
+        for(int j = 0; j < hogs[i].size(); j++){
+            if(hogs[i].at(j) != 0)
+                std::cout << i << "," << j << ": " << hogs[i].at(j) << std::endl;
+        }
+*/
         std::cout << double( clock() - inner_start ) / (double)CLOCKS_PER_SEC<< " seconds." << std::endl;
     }
     std::cout << double( clock() - start ) / (double)CLOCKS_PER_SEC<< " seconds. - total time for all images" << std::endl;
 }
 
-void calculate_distances(double** table, vector<double>* points, int size){
+void calculate_distances(vector<vector<distance_measure>> &table, vector<double>* points, int size){
     std::cout << "Calculating Distance" << std::endl;
     clock_t start = clock();
     //calculate pairwise distances
     for(int i = 0; i < size; i++){
+        vector<distance_measure> row;
         for(int j = 0; j < size; j++){
-            table[i][j] = getL1Distance(points[i], points[j]);
+            distance_measure dm;
+            dm.src_img = i;
+            dm.dest_img = j;
+            dm.distance = getL1Distance(points[i], points[j]);
+            row.push_back(dm);
         }
+
+        //sort row
+        std::sort(row.begin(), row.end(),[](distance_measure const & a, distance_measure const &b){return a.distance < b.distance;});
+
+        table.push_back(row);
     }
     std::cout << double( clock() - start ) / (double)CLOCKS_PER_SEC<< " seconds." << std::endl;
 }
@@ -131,25 +154,48 @@ int main(int argc, char **argv)
    build_hogs(wang_hogs, wang_images, img_ct);
 
    //calc pairwise histogram distances
-   double** colorhist_distances = new double*[img_ct];
-   for(int i = 0; i < img_ct; i++){
-       colorhist_distances[i] = new double[img_ct];
-   }
+   vector<vector<distance_measure>> colorhist_distances;
    calculate_distances(colorhist_distances, wang_histograms, img_ct);
 
-   //calc pairwise correlogram distances
-   double** correlogram_distances = new double*[img_ct];
+
+   std::ofstream fileout ("colorhist_ranks.out");
    for(int i = 0; i < img_ct; i++){
-       correlogram_distances[i] = new double[img_ct];
+       fileout << "Source Img: " << i << std::endl;
+        for(int j = 0; j < img_ct; j++){
+            distance_measure item = colorhist_distances[i][j];
+            fileout << item.dest_img << ", distance - " << item.distance << std::endl;
+        }
    }
-   calculate_distances(correlogram_distances, wang_auto_correlograms, img_ct);
+   fileout.close();
 
    //calc pairwise correlogram distances
-   double** hog_distances = new double*[img_ct];
+   vector<vector<distance_measure>> correlogram_distances;
+   calculate_distances(correlogram_distances, wang_auto_correlograms, img_ct);
+
+   std::ofstream fileout2 ("correlogram_ranks.out");
    for(int i = 0; i < img_ct; i++){
-       hog_distances[i] = new double[img_ct];
+       fileout2 << "Source Img: " << i << std::endl;
+        for(int j = 0; j < img_ct; j++){
+            distance_measure item = correlogram_distances[i][j];
+            fileout2 << item.dest_img << ", distance - " << item.distance << std::endl;
+        }
    }
+   fileout2.close();
+
+
+   //calc pairwise hog distances
+   vector<vector<distance_measure>> hog_distances;
    calculate_distances(hog_distances, wang_hogs, img_ct);
+
+   std::ofstream fileout3 ("hog_ranks.out");
+   for(int i = 0; i < img_ct; i++){
+       fileout3 << "Source Img: " << i << std::endl;
+        for(int j = 0; j < img_ct; j++){
+            distance_measure item = hog_distances[i][j];
+            fileout3 << item.dest_img << ", distance - " << item.distance << std::endl;
+        }
+   }
+   fileout3.close();
 
    return 0;
 }
