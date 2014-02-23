@@ -67,9 +67,5 @@ vector<double> ColorHistogram::Compute(Mat& img){
 		}
 	}
 
-	for(int i = 0; i < bq*gq*rq; i++){
-		cout << hist.at(i) << " ";
-	}
-
 	return hist;
 }
