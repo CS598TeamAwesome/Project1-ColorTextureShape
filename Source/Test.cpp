@@ -40,12 +40,12 @@ void load_images(cv::Mat* images, int img_ct){
     clock_t start = clock();
     for(int i = 0; i < img_ct; i++){
         std::string result;
-        std::ostringstream convert;
-        convert << i;
-        result = convert.str();
-
+        
         //looping over fixed directory path, with expected file names 0.jpg, 1.jpg, etc
-        std::string s = "wang_subset/" + result + ".jpg";
+        std::ostringstream convert;
+        convert << "wang_subset/" << i << ".jpg";
+        std::string s = convert.str();
+
         //std::cout << s << std::endl;
         images[i] = cv::imread(s);
     }
