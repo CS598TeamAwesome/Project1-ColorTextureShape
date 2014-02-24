@@ -1,24 +1,31 @@
 5. L1
 Parameters:
   two histograms of same type
-Output:
+Output: Σ(i) |HI(i) - HJ(i)|
 
 6. L2
 Parameters:
   two histograms of same type
-Output:
+Output: sqrt(Σ(i) |HI(i)-HJ(i)|^2))
 
 7. Chi-Square
-Parameters:
+Parameters: 
   two histograms of same type
-Output:
+Output: ∑(i) { 2 * (|HI(i)- HJ(i)|^2])  /  (HI(i) + HJ(i)) }
+
+8. KL-Distances
+Parameters: 
+  two histograms of same type
+Output: D(I, J) = KL(I, J) + KL(J, I) / 2
+		KL(I, J) = ∑(i) (HI(i) * log(HI(i)/HJ(i)))
 
 8. Cosine Similarity
 Parameters:
   two histograms of same type
-Output:
+Output: cos(q, d) (q, d are vectors here) = 
+		     ∑(i) (q(i) . d(i)) /  ( sqrt(∑(i) q(i)^2) * sqrt(∑(i) d(i)^2) )
 
 9. Histogram Intersection
 Parameters:
   two histograms of same type
-Output:
+Output: ∑(i)( min(HI(i), HJ(i)) )
