@@ -18,6 +18,8 @@ vector<LBP> LocalBinaryPattern::LBP_Hist( Mat& img )
 {
 	vector<LBP> hist;
 
+	hist.resize(256);
+
 	for ( int i = 1; i < (img.rows - 1); i++ )
 	{
 		for ( int j = 1; j < (img.cols - 1); j++ )
@@ -69,6 +71,7 @@ vector<LBP> LocalBinaryPattern::LBP_Hist( Mat& img )
 
 			// blue_hist
 			bool isexist = false;
+
 			for ( int k = 0; k < hist.size(); k++ )
 			{
 				// search for the values that are already exist
@@ -86,12 +89,18 @@ vector<LBP> LocalBinaryPattern::LBP_Hist( Mat& img )
 				LBP temp;
 				temp.bin_id = bin;
 				temp.hist_value = 1;
-				hist.push_back(temp);
+				hist.at(bin) = temp;
 			}
 		}
 	}
 
-	Sort( hist, 0, (hist.size()-1) );
+	for ( int i = 0; i < hist.size(); i++ )
+	{
+		if ( hist[i].hist_value == 0 )
+		{
+			hist[i].bin_id = i;
+		}
+	}
 
 	return hist;
 }
@@ -144,37 +153,4 @@ char* LocalBinaryPattern::MoveBinary( char temp[8] )
 		}
 	}
 	return temp;
-}
-
-int LocalBinaryPattern::partition( vector<LBP> hist_channel, int p, int r )
-{
-	int s = hist_channel[r].bin_id;
-	int mid = p;
-
-	for ( int i = p; i < r; i++ )
-	{
-		if ( hist_channel[i].bin_id < s )
-		{
-			LBP temp = hist_channel[mid];
-			hist_channel[mid] = hist_channel[i];
-			hist_channel[i] = temp;
-			mid++;
-		}
-	}
-
-	LBP temp = hist_channel[r];
-	hist_channel[r] = hist_channel[mid];
-	hist_channel[mid] = temp;
-
-	return mid;
-}
-
-void LocalBinaryPattern::Sort( vector<LBP> hist_channel, int p, int r )
-{
-	if ( p < r )
-	{
-		int q = partition( hist_channel, p, r );
-		Sort( hist_channel, p, q-1 );
-		Sort( hist_channel, q+1, r );
-	}
 }
