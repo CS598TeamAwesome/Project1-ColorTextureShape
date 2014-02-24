@@ -1,6 +1,7 @@
 set(SOURCE
     ${SOURCE}
     ${CMAKE_CURRENT_SOURCE_DIR}/L1Distance.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/L2Distance.cpp
     PARENT_SCOPE    
 )
 
@@ -8,5 +9,6 @@ set(HEADERS
     ${HEADERS}
     ${CMAKE_CURRENT_SOURCE_DIR}/Distance.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/L1Distance.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/L2Distance.hpp
     PARENT_SCOPE
 )
