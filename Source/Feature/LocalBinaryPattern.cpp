@@ -16,9 +16,7 @@ vector<double> LocalBinaryPattern::Compute(Mat &img)
 
 vector<LBP> LocalBinaryPattern::LBP_Hist( Mat& img )
 {
-	vector<LBP> hist;
-
-	hist.resize(256);
+	vector<LBP> hist(256);
 
 	for ( int i = 1; i < (img.rows - 1); i++ )
 	{
@@ -33,12 +31,10 @@ vector<LBP> LocalBinaryPattern::LBP_Hist( Mat& img )
 
 			// left up
 			Vec3b channel_temp = img.at<Vec3b>(i-1, j-1);
-
 			lbp_temp[0] = Value_Compare( channel_temp, gray );
 
 			// up
 			channel_temp = img.at<Vec3b>(i-1, j);
-
 			lbp_temp[1] = Value_Compare( channel_temp, gray );
 
 			// right up
@@ -89,7 +85,7 @@ vector<LBP> LocalBinaryPattern::LBP_Hist( Mat& img )
 				LBP temp;
 				temp.bin_id = bin;
 				temp.hist_value = 1;
-				hist.at(bin) = temp;
+				hist[bin] = temp;
 			}
 		}
 	}
