@@ -99,12 +99,7 @@ void build_hogs(vector<double>* hogs, cv::Mat* images, int size){
         int inner_start = clock();
 
         hogs[i] = h1.Compute(images[i]);
-/*
-        for(int j = 0; j < hogs[i].size(); j++){
-            if(hogs[i].at(j) != 0)
-                std::cout << i << "," << j << ": " << hogs[i].at(j) << std::endl;
-        }
-*/
+        
         std::cout << double( clock() - inner_start ) / (double)CLOCKS_PER_SEC<< " seconds." << std::endl;
     }
     std::cout << double( clock() - start ) / (double)CLOCKS_PER_SEC<< " seconds. - total time for all images" << std::endl;
