@@ -9,6 +9,7 @@
 #include "Feature/ColorCorrelogram.hpp"
 #include "Feature/ColorHistogram.hpp"
 #include "Feature/HistogramOfOrientedGradients.hpp"
+#include "Feature/LocalBinaryPattern.hpp"
 #include <cmath>
 using std::vector;
 using namespace ColorTextureShape;
@@ -105,6 +106,26 @@ void build_hogs(vector<double>* hogs, cv::Mat* images, int size){
     std::cout << double( clock() - start ) / (double)CLOCKS_PER_SEC<< " seconds. - total time for all images" << std::endl;
 }
 
+void build_lbp( vector<double>* lbp, cv::Mat* images, int size )
+{
+	LocalBinaryPattern lb1;
+
+	std::cout << "Building Histograms of Local Binary Pattern" << std::endl;
+
+	clock_t start = clock();
+
+	for ( int i = 0; i < size; i++ )
+	{
+		std::cout << "LBP " << i << ": ";
+		int inner_start = clock();
+
+		lbp[i] = lb1.Compute(images[i]);
+
+		std::cout << double( clock() - inner_start ) / (double)CLOCKS_PER_SEC << " seconds." << std::endl;
+	}
+	std::cout << double( clock() - start ) / (double)CLOCKS_PER_SEC << " seconds. - total time fro all images." <<std::endl;
+}
+
 void calculate_distances(vector<vector<distance_measure>> &table, vector<double>* points, int size){
     std::cout << "Calculating Distance" << std::endl;
     clock_t start = clock();
@@ -130,7 +151,7 @@ void calculate_distances(vector<vector<distance_measure>> &table, vector<double>
 int main(int argc, char **argv)
 {
 
-   int img_ct = 50;
+   const int img_ct = 50;
 
    //load images
    cv::Mat* wang_images = new cv::Mat[img_ct];
@@ -147,6 +168,10 @@ int main(int argc, char **argv)
    //build histograms of oriented gradient
    vector<double> wang_hogs[img_ct];
    build_hogs(wang_hogs, wang_images, img_ct);
+
+   //build LBP histograms
+   vector<double> wang_lbp[img_ct];
+   build_lbp( wang_lbp, wang_images, img_ct );
 
    //calc pairwise histogram distances
    vector<vector<distance_measure>> colorhist_distances;
@@ -191,6 +216,20 @@ int main(int argc, char **argv)
         }
    }
    fileout3.close();
+
+   //calc pairwise lbp distances
+   vector<vector<distance_measure>> lbp_distances;
+   calculate_distances( lbp_distances, wang_lbp, img_ct );
+
+   std::ofstream fileout4 ("lbp_ranks.out");
+   for(int i = 0; i < img_ct; i++){
+       fileout4 << "Source Img: " << i << std::endl;
+        for(int j = 0; j < img_ct; j++){
+            distance_measure item = lbp_distances[i][j];
+            fileout4 << item.dest_img << ", distance - " << item.distance << std::endl;
+        }
+   }
+   fileout4.close();
 
    return 0;
 }
