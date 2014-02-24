@@ -53,9 +53,11 @@ std::vector<double> HistogramOfOrientedGradients::Compute(cv::Mat &img)
     }
     
     // 5. Compute histogram for each cell 
+    double binAngleSize = M_PI / _Bins;
+    
     std::vector<std::vector<double>> cellHistograms(cellsH.size());
     std::transform(cellsH.begin(), cellsH.end(), cellsV.begin(), cellHistograms.begin(),
-    [this](cv::Mat &gradH, cv::Mat &gradV)
+    [this, &binAngleSize](cv::Mat &gradH, cv::Mat &gradV)
     {
         std::vector<double> histogram(_Bins, 0);
         
@@ -71,12 +73,23 @@ std::vector<double> HistogramOfOrientedGradients::Compute(cv::Mat &img)
                     double angle = std::abs(std::atan2(v, h)); // using unsigned angles
                     double mag = std::sqrt((h * h) + (v * v));
                     
-                    int bin = (int)std::floor(_Bins * angle / M_PI);
+                    int binBottom = (int)std::min(std::floor(_Bins * angle / M_PI), 8.0);
+                    int binTop = (int)std::min(binBottom + 1.0, 8.0);
                     
-                    if(angle == M_PI) // Last bin must also include alpha = 180
-                        bin = _Bins - 1;
+                    if(binBottom != binTop)
+                    {
+                        double ratio = ((binTop * binAngleSize) - angle) / binAngleSize;
                     
-                    histogram[bin] += mag;
+                        double magBottom = ratio * mag;
+                        double magTop = (1.0 - ratio) * mag;
+                    
+                        histogram[binBottom] += magBottom;
+                        histogram[binTop] += magTop;
+                    }
+                    else
+                    {
+                        histogram[binBottom] += mag;
+                    }
                 }
             }
         }
