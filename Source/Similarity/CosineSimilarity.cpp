@@ -20,6 +20,6 @@ double CosineSimilarity::Compute(const vector<double> &v1, const vector<double> 
 	sum_d += v2.at(i) * v2.at(i);
 	sum_qd += v1.at(i) * v2.at(i);
     }
-	sum = sum_qd/(std:sqrt(sum_q) * std:sqrt(sum_q));
+	sum = sum_qd/(std::sqrt(sum_q) * std::sqrt(sum_q));
     	return sum;
 }
