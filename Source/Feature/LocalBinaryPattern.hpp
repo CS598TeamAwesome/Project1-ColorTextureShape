@@ -33,5 +33,7 @@ namespace ColorTextureShape
 
 		//Generate LBP Histogram
 		std::vector<LBP> LBP_Hist( cv::Mat& img );
+        
+        std::vector<double> Compute(cv::Mat &img);
 	};
 }

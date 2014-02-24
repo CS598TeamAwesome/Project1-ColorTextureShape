@@ -1,7 +1,19 @@
 #include "LocalBinaryPattern.hpp"
+#include <algorithm>
 
 using namespace cv;
 using namespace ColorTextureShape;
+
+vector<double> LocalBinaryPattern::Compute(Mat &img)
+{
+    vector<LBP> hist = LBP_Hist(img);
+    vector<double> finalHist(hist.size());
+    
+    std::transform(hist.begin(), hist.end(), finalHist.begin(), [](LBP &lbp)
+    {
+        return lbp.hist_value;
+    });
+}
 
 vector<LBP> LocalBinaryPattern::LBP_Hist( Mat& img )
 {
