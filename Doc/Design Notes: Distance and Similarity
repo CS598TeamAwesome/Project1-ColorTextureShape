@@ -6,7 +6,7 @@ Output: Σ(i) |HI(i) - HJ(i)|
 6. L2
 Parameters:
   two histograms of same type
-Output: sqrt(Σ(i) |HI(i)-HJ(i)|^2)�  )HI(i) - HJ(i)|^2  } 
+Output: sqrt(Σ(i) |HI(i)-HJ(i)|^2))
 
 7. Chi-Square
 Parameters: 
@@ -28,4 +28,4 @@ Output: cos(q, d) (q, d are vectors here) =
 9. Histogram Intersection
 Parameters:
   two histograms of same type
-Output: ∑(i)( min(HI(i), HJ(i)))�(i), H𝐽(i)) )
+Output: ∑(i)( min(HI(i), HJ(i)) )
