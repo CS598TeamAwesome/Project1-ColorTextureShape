@@ -23,7 +23,7 @@ namespace ColorTextureShape
 		char Value_Compare( cv::Vec3b pix_val, int val );
 
 		// Exclude the same type of texture
-		char* MoveBinary( char temp[8] );
+        void MoveBinary( char *temp );
 
 		//Generate LBP Histogram
 		std::vector<LBP> LBP_Hist( cv::Mat& img );

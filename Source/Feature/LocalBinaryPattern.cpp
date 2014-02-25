@@ -61,9 +61,9 @@ vector<LBP> LocalBinaryPattern::LBP_Hist( Mat& img )
 			channel_temp = img.at<Vec3b>(i, j-1);
 			lbp_temp[7] = Value_Compare( channel_temp, gray );
 
-			char* t = MoveBinary( lbp_temp );
+            MoveBinary( lbp_temp );
 
-			int bin = B2D( t );
+            int bin = B2D( lbp_temp );
 
 			// blue_hist
 			bool isexist = false;
@@ -128,7 +128,7 @@ char LocalBinaryPattern::Value_Compare( Vec3b pix_val, int val )
 	}
 }
 
-char* LocalBinaryPattern::MoveBinary( char temp[8] )
+void LocalBinaryPattern::MoveBinary( char *temp )
 {
 	int it = 0;
 	while ( temp[7] == '0' )
@@ -148,5 +148,4 @@ char* LocalBinaryPattern::MoveBinary( char temp[8] )
 			break;
 		}
 	}
-	return temp;
 }
