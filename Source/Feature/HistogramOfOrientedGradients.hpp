@@ -41,13 +41,12 @@ namespace ColorTextureShape
             void Norm(NormStrategy &n);
             
         private:            
-            NormStrategy _Norm = L2Norm;
+            NormStrategy _Norm;
             
-            cv::Size _CellSize = cv::Size(6, 6);
-            cv::Size _BlockSize = cv::Size(3, 3);
-            int _Bins = 9;
+            cv::Size _CellSize;
+            cv::Size _BlockSize;
+            int _Bins;
             
-            // [-1 0 1] initialized in constructor
             cv::Mat _Mx, _My;
     };
 }

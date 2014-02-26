@@ -17,6 +17,7 @@
 using namespace ColorTextureShape;
 
 HistogramOfOrientedGradients::HistogramOfOrientedGradients(void)
+    : _Norm(L2Norm), _CellSize(6, 6), _BlockSize(3, 3), _Bins(9)
 {
     double gradData[3] = {-1, 0, 1};
     
