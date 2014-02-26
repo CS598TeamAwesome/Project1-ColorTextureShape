@@ -16,10 +16,11 @@ ColorCorrelogram::ColorCorrelogram(int d, bool set_auto)
     //use default 64 bin quantization
 }
 
-ColorCorrelogram::ColorCorrelogram(int d, bool set_auto, ColorQuantizationBGR space){
+ColorCorrelogram::ColorCorrelogram(int d, bool set_auto, ColorQuantizationBGR space)
+    : quantization(space)
+{
     distance = d;
     auto_flag = false;
-    quantization = space;
 }
 
 std::vector<double> ColorCorrelogram::Compute(cv::Mat &img){

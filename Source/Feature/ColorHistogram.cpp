@@ -14,8 +14,10 @@ ColorHistogram::ColorHistogram()
 
 }
 
-ColorHistogram::ColorHistogram(ColorQuantizationBGR space){
-    quantization = space;
+ColorHistogram::ColorHistogram(ColorQuantizationBGR space)
+    : quantization(space)
+{
+
 }
 
 std::vector<double> ColorHistogram::Compute(cv::Mat &img){
