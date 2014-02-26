@@ -8,7 +8,9 @@ using std::vector;
 
 using namespace ColorTextureShape;
 
-ColorCorrelogram::ColorCorrelogram(int d, bool set_auto){
+ColorCorrelogram::ColorCorrelogram(int d, bool set_auto)
+    : quantization(4,4,4)
+{
     distance = d;
     auto_flag = set_auto;
     //use default 64 bin quantization

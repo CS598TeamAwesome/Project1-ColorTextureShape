@@ -24,7 +24,7 @@ namespace ColorTextureShape
             int getCorrelogramVectorSize(); //potentially need long if color space and distance are too big
 
         private:
-            ColorQuantizationBGR quantization = ColorQuantizationBGR(4,4,4); //default 64 bin quantization
+            ColorQuantizationBGR quantization; //default 64 bin quantization
             bool auto_flag = false;
             int distance;
 
