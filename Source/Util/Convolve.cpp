@@ -3,7 +3,7 @@
 void ColorTextureShape::CenterConvolve(cv::Mat &img, cv::Mat &out, cv::Mat &kernel)
 {
     if(kernel.rows % 2 != 1 && kernel.cols % 2 != 1)
-        throw BadDimension();
+        return;
     
     out.create(img.rows, img.cols, CV_64F);
     
