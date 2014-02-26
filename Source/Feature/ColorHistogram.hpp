@@ -1,15 +1,16 @@
 #include "HistogramFeature.hpp"
+#include "../Util/ColorQuantizationBGR.hpp"
+#include <opencv2/opencv.hpp>
 
 namespace ColorTextureShape
 {
     class ColorHistogram : public HistogramFeature
     {
         public:
-            ColorHistogram(int bq = 4, int gq = 4, int rq = 4);        
-            
             std::vector<double> Compute(cv::Mat &img);
-            
+            ColorHistogram();
+            ColorHistogram(ColorQuantizationBGR space);
         private:
-            int bq, gq, rq;
+            ColorQuantizationBGR quantization = ColorQuantizationBGR(4,4,4); //default 64 bin quantization
     };
 }

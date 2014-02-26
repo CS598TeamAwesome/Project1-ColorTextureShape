@@ -1,71 +1,58 @@
 #include "ColorHistogram.hpp"
-#include <opencv2/opencv.hpp>
-#include <stdio.h>
+#include <opencv2/imgproc/types_c.h>
 #include <iostream>
-#include <iterator>
 #include <vector>
-#include <stdlib.h>
-
-using namespace cv;
-using namespace std;
+#include <algorithm>
+#include <sstream>
+using std::vector;
 
 using namespace ColorTextureShape;
 
-ColorHistogram::ColorHistogram(int bq, int gq, int rq)
-{
-    this->bq = bq;
-    this->gq = gq;
-    this->rq = rq;
+ColorHistogram::ColorHistogram(){
+
 }
 
-vector<double> ColorHistogram::Compute(Mat& img){
-	vector<double> hist;
-	int nc = img.channels();
-	int bin = rq*gq*bq;
-	vector<int> valList;
-	vector<float> lumList;
-	vector<int> blueList;
-	vector<int> greenList;
-	vector<int> redList;
-	
-	for(int i = 0; i < bq*gq*rq; i++){
-		hist.insert(hist.begin()+i,0);
-	}
+ColorHistogram::ColorHistogram(ColorQuantizationBGR space){
+    quantization = space;
+}
 
+std::vector<double> ColorHistogram::Compute(cv::Mat &img){
+    //how many colors (N) and their ranges are passed in as quantization
+    int color_ct = quantization.getBinCt();
+    int rows = img.rows;
+    int columns = img.cols;
 
-	for(int i = 0; i < img.rows; i++){
-		for(int j = 0; j < img.cols; j++){
-			int it = i*img.cols+j;
-			Vec3b intensity = img.at<Vec3b>(i, j);
-			uchar blue = intensity.val[0];
-			uchar green = intensity.val[1];
-			uchar red = intensity.val[2];
-			int blueInt = blue;
-			int greenInt = green;
-			int redInt = red;
+    //1. quantize image
+    int** quantized_img = new int*[rows];
+    for(int i = 0; i < img.rows; i++){
+        quantized_img[i] = new int[columns];
+    }
 
-			for(int b = 1; b <= bq; b++){
-				for(int g = 1; g <= gq; g++){
-					for(int r = 1; r <= rq; r++){
-						int it2 = (b-1)*gq*rq+(g-1)*rq+(r-1);	
-						float pbVal = (b-1)*256/bq-1;
-						float pgVal = (g-1)*256/gq-1;
-						float prVal = (r-1)*256/rq-1;
-						float bVal = b*256/bq-1;
-						float gVal = g*256/gq-1;
-						float rVal = r*256/rq-1;					
-						if(blueInt > pbVal && blueInt <= bVal && greenInt > pgVal && greenInt <= gVal && redInt > prVal && redInt <= rVal){	
-							hist.at(it2) += 1;	
-							break;
-						}
-						else{
-							continue;
-						}
-					}
-				}
-			}
-		}
-	}
+    quantization.quantize(img, quantized_img);
 
-	return hist;
+    //2. one more pass over image to put quantized pixels into bins
+    int* hist = new int[color_ct];
+    for(int i = 0; i < color_ct; i++){
+        hist[i] = 0;
+    }
+
+    for(int i = 0; i < rows; i++){
+        for(int j = 0; j < columns; j++){
+            hist[quantized_img[i][j]]++;
+        }
+    }
+
+    vector<double> result(hist, hist+color_ct);
+
+    //cleanup
+    //delete quantized image
+    for(int i = 0; i < rows; i++){
+        delete[] quantized_img[i];
+    }
+    delete[] quantized_img;
+
+    //delete hist
+    delete[] hist;
+
+    return result;
 }
