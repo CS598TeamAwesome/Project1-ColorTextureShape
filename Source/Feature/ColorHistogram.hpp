@@ -11,6 +11,6 @@ namespace ColorTextureShape
             ColorHistogram();
             ColorHistogram(ColorQuantizationBGR space);
         private:
-            ColorQuantizationBGR quantization = ColorQuantizationBGR(4,4,4); //default 64 bin quantization
+            ColorQuantizationBGR quantization; //default 64 bin quantization
     };
 }

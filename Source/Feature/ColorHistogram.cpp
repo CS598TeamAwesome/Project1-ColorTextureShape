@@ -8,7 +8,9 @@ using std::vector;
 
 using namespace ColorTextureShape;
 
-ColorHistogram::ColorHistogram(){
+ColorHistogram::ColorHistogram()
+    : quantization(4, 4, 4)
+{
 
 }
 
