@@ -25,7 +25,7 @@ namespace ColorTextureShape
 
         private:
             ColorQuantizationBGR quantization; //default 64 bin quantization
-            bool auto_flag = false;
+            bool auto_flag;
             int distance;
 
             int*** buildLambdaTable(int color, char direction, int** q_img, int rows, int columns);
