@@ -17,7 +17,7 @@ namespace ColorTextureShape
 	{
 	public:
 		// Binary to Decimal
-		int B2D( char str[8] );
+		int B2D(char *str );
 
 		// Generate one byte for LBP
 		char Value_Compare( cv::Vec3b pix_val, int val );

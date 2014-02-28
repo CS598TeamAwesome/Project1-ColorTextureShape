@@ -3,6 +3,7 @@
 
 using namespace cv;
 using namespace ColorTextureShape;
+using namespace std;
 
 vector<double> LocalBinaryPattern::Compute(Mat &img)
 {
@@ -17,7 +18,7 @@ vector<double> LocalBinaryPattern::Compute(Mat &img)
 vector<LBP> LocalBinaryPattern::LBP_Hist( Mat& img )
 {
 	vector<LBP> hist(256);
-
+    
 	for ( int i = 1; i < (img.rows - 1); i++ )
 	{
 		for ( int j = 1; j < (img.cols - 1); j++ )
@@ -27,7 +28,8 @@ vector<LBP> LocalBinaryPattern::LBP_Hist( Mat& img )
 			// Calculate the grayscale value of the pixel
 			int gray = ( pix.val[2]*299 + pix.val[1]*587 + pix.val[0]*114 + 500)/1000;
 
-			char lbp_temp[8];
+			char lbp_temp[9];
+            lbp_temp[8] = '\0'; // Strings MUST be null terminated!
 
 			// left up
 			Vec3b channel_temp = img.at<Vec3b>(i-1, j-1);
@@ -82,7 +84,7 @@ vector<LBP> LocalBinaryPattern::LBP_Hist( Mat& img )
 			// if the LBP is not exist in the vector
 			if ( isexist == false )
 			{
-				LBP temp;
+                LBP temp;
 				temp.bin_id = bin;
 				temp.hist_value = 1;
 				hist[bin] = temp;
@@ -101,7 +103,7 @@ vector<LBP> LocalBinaryPattern::LBP_Hist( Mat& img )
 	return hist;
 }
 
-int LocalBinaryPattern::B2D( char str[8] )
+int LocalBinaryPattern::B2D( char *str )
 {
 	char* pEnd;
 	unsigned long long val;
