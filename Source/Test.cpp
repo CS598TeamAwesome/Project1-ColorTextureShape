@@ -151,7 +151,7 @@ void calculate_distances(vector<vector<distance_measure>> &table, vector<double>
 int main(int argc, char **argv)
 {
 
-   int img_ct = 50;
+   const int img_ct = 50;
 
    //load images
    cv::Mat* wang_images = new cv::Mat[img_ct];
